@@ -1,0 +1,30 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>  
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <PackageId>SpExecuter</PackageId>
+    <Version>1.0.0</Version>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <IsRoslynComponent>true</IsRoslynComponent>
+    <OutputItemType>Analyzer</OutputItemType>
+    <EnforceExtendeAnalyzerRules>true</EnforceExtendeAnalyzerRules>
+    <Authors>Prashant Darade</Authors>
+    <Description>Roslyn source generator that produces strongly-typed call wrappers for SpExecuter.Utility stored-procedure execution library.</Description>
+    <RunAnalyzers>false</RunAnalyzers>
+    <IncludeBuildOutput>true</IncludeBuildOutput>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageTags>spexecuter sourcegenerator analyzer roslyn sql sp storedprocedures</PackageTags>
+    <PackageProjectUrl>https://github.com/prashantda/SpExecuter</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/prashantda/SpExecuter</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
+
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="4.14.0" />
+  </ItemGroup>
+
+</Project>

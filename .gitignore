@@ -1,0 +1,13 @@
+﻿################################################################################
+# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
+################################################################################
+
+/.vs
+/Example/obj
+/SpExecuter.Generator/bin/Debug/netstandard2.0
+/SpExecuter.Generator/obj
+/SpExecuter.Utility/bin/Debug/netstandard2.0
+/SpExecuter.Utility/obj
+/Example/bin/Debug/net8.0
+/SpExecuter.Generator/bin/Debug
+/SpExecuter.Utility/bin/Debug
