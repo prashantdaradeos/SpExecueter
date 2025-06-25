@@ -348,10 +348,10 @@ namespace SpExecuter.Generator
             CollectUserDefinedClasses(member.ReturnType, currentMethodsReturnTypes);
             // Transform each item to "SpResponse.ClassX"
             string[] responseArray = currentMethodsReturnTypes
-                .Select(item => $"SpResponse.{item}")
+                .Select(item => $"SpResponse.{item.Split('.').Last()}")
                 .ToArray();
             string returnTypes = string.Join(", ", responseArray);
-            returnTypes = string.IsNullOrEmpty(returnTypes) ? ", " + returnTypes : string.Empty;
+            returnTypes = !string.IsNullOrEmpty(returnTypes) ? ", returnObjects: [" + returnTypes+"]" : string.Empty;
             foreach (string eachReturnType in currentMethodsReturnTypes)
             {
                 uniqueReturnClasses.Add(eachReturnType);

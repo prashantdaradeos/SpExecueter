@@ -25,6 +25,8 @@ public interface IClass2
     ValueTask<List<Class5>> ExecuteFrom7(string conString, Class7 class7Obj);
     [StoredProcedure("3rdSp")]
     ValueTask<(List<Class6>, List<Class5>)> ExecuteToLists(string conString);
+    [StoredProcedure("4thSp")]
+    ValueTask<GenericSpResponse> ExecuteToListsAnother(string conString);
 }
 public class Class3:ISpResponse
 {
