@@ -16,8 +16,8 @@
     <IncludeBuildOutput>true</IncludeBuildOutput>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageTags>spexecuter sourcegenerator analyzer roslyn sql sp storedprocedures</PackageTags>
-    <PackageProjectUrl>https://github.com/prashantda/SpExecuter</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/prashantda/SpExecuter</RepositoryUrl>
+    <PackageProjectUrl>https://www.nuget.org/packages/SpExecuter.Generator/</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/prashantdaradeos/SpExecueter</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
 

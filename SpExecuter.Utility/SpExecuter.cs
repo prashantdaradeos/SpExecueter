@@ -52,7 +52,7 @@ namespace SpExecuter.Utility
                                         reader.NextResult();
                                         continue;
                                     }
-                                    Type type = AppConstants.SpResponseModelTypeArray[objectTypeIndex];
+                                    Type type = DBConstants.SpResponseModelTypeArray[objectTypeIndex];
                                     var list = new List<ISpResponse>();
                                     while (reader.Read())
                                     {

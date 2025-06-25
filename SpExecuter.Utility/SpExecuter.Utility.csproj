@@ -10,9 +10,8 @@
     <Authors>Prashant Darade</Authors>
     <Description>Automates stored-procedure execution at runtime exclusively on Microsoft SQL Server.</Description>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <PackageTags>spexecuter;utility;sql;storedprocedures</PackageTags>
-    <PackageProjectUrl>https://github.com/prashantda/SpExecuter</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/prashantda/SpExecuter</RepositoryUrl>
+    <PackageProjectUrl>https://www.nuget.org/packages/SpExecuter.Utility/</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/prashantdaradeos/SpExecueter</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
 
     <!-- Automatically create the .nupkg on build -->

@@ -9,18 +9,24 @@ using System.Text;
 namespace SpExecuter.Utility
 {
 
-
+    public class DBConstants
+    {
+        public static int SpRequestClassesCount { get; set; }
+        public static int SpResponseClassesCount { get; set; }
+        public static Type[] SpRequestModelTypeArray { get; set; } 
+        public static Type[] SpResponseModelTypeArray { get; set; } 
+    }
     internal class AppConstants
     {
         #region Constants
         public const string AtTheRate = "@";
         public const string UnderScore = "_";
         #endregion
-
+      
         public static PropertyInfo[][] SpRequestPropertyInfoCache { get; set; }
         public static PropertyInfo[][] SpResponsePropertyInfoCache { get; set; }
-        public static Type[] SpRequestModelTypeArray { get; set; } = new Type[0];
-        public static Type[] SpResponseModelTypeArray { get; set; } = new Type[0];
+       // public static Type[] SpRequestModelTypeArray { get; set; } 
+       // public static Type[] SpResponseModelTypeArray { get; set; } 
         public static Type ListType { get; } = typeof(List<>);
         public static Dictionary<string, Func<object, object>>[] CachedPropertyAccessorDelegates { get; set; }
         public static Dictionary<string, Action<object, object>>[] CachedPropertySetterDelegates { get; set; }

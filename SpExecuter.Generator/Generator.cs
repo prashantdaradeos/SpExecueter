@@ -53,8 +53,12 @@ namespace SpExecuter.Generator
 
                 GeneratedExecuterClasses(allClassSyntax,
                  array, registerClasses, uniqueResponseClasses, uniqueRequestClasses);
-                HashSet<string> addedClasses = new HashSet<string>();
 
+                if(allClassSyntax.Count < 1)
+                {
+                    return;
+                }
+                HashSet<string> addedClasses = new HashSet<string>();
                 foreach (KeyValuePair<string, StringBuilder> generateClass in allClassSyntax)
                 {
                     bool isClassAdded = addedClasses.Add(generateClass.Key);
@@ -66,15 +70,71 @@ namespace SpExecuter.Generator
 
 
                 GenerateRequestClassesConfiguration(uniqueRequestClasses, requestClassConfiguration);
-                context.AddSource($"{"RequestClasses"}Generated.g.cs", SourceText.From(requestClassConfiguration.ToString(), Encoding.UTF8));
+                context.AddSource($"RequestClasses.g.cs", SourceText.From(requestClassConfiguration.ToString(), Encoding.UTF8));
 
                 GenerateResponseClassesConfiguration(uniqueResponseClasses, responseClassConfiguration);
-                context.AddSource($"{"ResponseClasses"}Generated.g.cs", SourceText.From(responseClassConfiguration.ToString(), Encoding.UTF8));
+                context.AddSource($"ResponseClasses.g.cs", SourceText.From(responseClassConfiguration.ToString(), Encoding.UTF8));
+
+                GenerateRuntimeDependencies(registerClasses, buildServices, uniqueRequestClasses, uniqueResponseClasses);
+                context.AddSource($"StartupExtension.g.cs", SourceText.From(buildServices.ToString(), Encoding.UTF8));
 
             }
 
         }
-        private static void GeneratedExecuterClasses(Dictionary<string, StringBuilder> allClassSyntax,
+
+        private static void GenerateRuntimeDependencies(Dictionary<string, (string, Lifetime)> registerClasses,
+            StringBuilder buildServices,HashSet<string> uniqueRequestClasses,HashSet<string> uniqueResponseClasses)
+        {
+            buildServices.AppendLine(
+                """
+                using Microsoft.Extensions.DependencyInjection;
+
+                namespace SpExecuter.Utility
+
+                {
+                    public static partial class StartUp
+                    {
+                     
+                        static void RegisterForDependencyInjection(IServiceCollection services)
+                        {    
+                """);
+
+            foreach (var classInfo in registerClasses)
+            {
+                buildServices.AppendLine($"""
+                            services.Add{registerClasses[classInfo.Key].Item2.ToString()}<{classInfo.Key},{classInfo.Value.Item1}>();
+                """);
+            }
+            buildServices.AppendLine($"             DBConstants.SpRequestClassesCount = SpRequest.TotalCount ;");
+            buildServices.AppendLine($"             DBConstants.SpResponseClassesCount = SpResponse.TotalCount ;");
+
+            buildServices.AppendLine($"             DBConstants.SpRequestModelTypeArray = new Type[] {{");
+
+            foreach(string className in uniqueRequestClasses)
+            {
+                buildServices.AppendLine($"                 typeof({className}),");
+            }
+            buildServices.AppendLine("              };");
+            buildServices.AppendLine($"             DBConstants.SpResponseModelTypeArray = new Type[] {{");
+
+            foreach (string className in uniqueResponseClasses)
+            {
+                buildServices.AppendLine($"                 typeof({className}),");
+            }
+            buildServices.AppendLine("              };");
+
+
+
+            buildServices.AppendLine(""" 
+                        }
+                    }
+                }
+                """);
+
+        }
+           
+
+    private static void GeneratedExecuterClasses(Dictionary<string, StringBuilder> allClassSyntax,
           ImmutableArray<ITypeSymbol> interfaces,
          Dictionary<string, (string, Lifetime)> registerClasses, HashSet<string> uniqueReturnClasses,
            HashSet<string> uniqueRequestClasses)
@@ -86,7 +146,7 @@ namespace SpExecuter.Generator
                 AttributeData attr = interfaceSymbol.GetAttributes().FirstOrDefault()!;
                 //allClassSyntax.Add("My"+i,new StringBuilder( interfaceSymbol.Name));
                 // Get interface name and class name for DI
-                string className = GetClassToRegister(registerClasses, interfaceSymbol.Name, attr);
+                string className = GetClassToRegister(registerClasses, interfaceSymbol, attr);
                 string namespaceName = interfaceSymbol.ContainingNamespace?.ToDisplayString()!;
                 if (!allClassSyntax.ContainsKey(className))
                 {
@@ -124,7 +184,7 @@ namespace SpExecuter.Generator
                         if (member.Parameters.Length > 1)
                         {
                             objectParamName = member.Parameters[1].Name;
-                            requestTypeName = member.Parameters[1].Type.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat);
+                            requestTypeName = member.Parameters[1].Type.ToDisplayString();
                             uniqueRequestClasses.Add(requestTypeName);
 
                             paramNeeded = "true";
@@ -137,7 +197,7 @@ namespace SpExecuter.Generator
                         classSyntax.AppendLine("    {");
                         classSyntax.AppendLine("        List<ISpResponse>[] response =await SpExecutor.ExecuteSpToObjects(");
                         classSyntax.AppendLine($"           spName: \"{spName}\", dbName: {connctionStringParamName}, spNeedParameters: {paramNeeded},spEntity: {objectParamName}, ");
-                        classSyntax.AppendLine($"           requestObjectNumber: SpRequest.{requestTypeName} ");
+                        classSyntax.AppendLine($"           requestObjectNumber: SpRequest.{requestTypeName.Split('.').Last()} ");
                         classSyntax.AppendLine($"           {returnTypes} );");
                         classSyntax.AppendLine($"           {returnStatement}");
                         classSyntax.AppendLine("    }");
@@ -181,7 +241,7 @@ namespace SpExecuter.Generator
         private static void GenerateResponseClassesConfiguration(HashSet<string> uniqueResponseCasses, StringBuilder builder)
         {
             builder.AppendLine($"namespace SpExecuter.Utility"); builder.AppendLine("{");
-            builder.AppendLine($"   public class SpResponse");
+            builder.AppendLine($"    public class SpResponse");
             builder.AppendLine("    {");
             builder.AppendLine();
             builder.AppendLine($"       public const int SkipResponse = 0 ;");
@@ -190,29 +250,34 @@ namespace SpExecuter.Generator
             int srNo = 1;
             foreach (string responseClass in uniqueResponseCasses)
             {
-                builder.AppendLine($"public const int {responseClass} = {srNo} ;");
+                builder.AppendLine($"       public const int {responseClass.Split('.').Last()} = {srNo} ;");
                 builder.AppendLine();
                 srNo++;
             }
-            builder.AppendLine($@" }}
+            builder.AppendLine($"       public const int TotalCount = {srNo} ;");
+
+            builder.AppendLine($@"    }}
 }}");
         }
         private static void GenerateRequestClassesConfiguration(HashSet<string> uniqueRequestClasses, StringBuilder builder)
         {
-            builder.AppendLine($"namespace SpExecuter.Utility"); builder.AppendLine("{");
+            builder.AppendLine($"namespace SpExecuter.Utility");
+            builder.AppendLine("{");
             builder.AppendLine($"   public class SpRequest");
             builder.AppendLine("    {");
             builder.AppendLine();
-            builder.AppendLine($"   public const int NoRequest = 0 ;");
+            builder.AppendLine($"       public const int NoRequest = 0 ;");
             builder.AppendLine();
             int srNo = 1;
             foreach (string requestClass in uniqueRequestClasses)
             {
-                builder.AppendLine($"public const int {requestClass} = {srNo};");
+            builder.AppendLine($"       public const int {requestClass.Split('.').Last()} = {srNo};");
                 builder.AppendLine();
                 srNo++;
             }
-            builder.AppendLine($@"  }}
+            builder.AppendLine($"       public const int TotalCount = {srNo} ;");
+
+            builder.AppendLine($@"   }}
 }}");
 
         }
@@ -253,7 +318,7 @@ namespace SpExecuter.Generator
                 if (namedSym.TypeKind == TypeKind.Class &&
                     namedSym.DeclaringSyntaxReferences.Length > 0)
                 {
-                    outSet.Add(namedSym.Name);
+                    outSet.Add(namedSym.ToDisplayString());
                 }
 
                 // 1d) ARRAY disguised as namedSym (rare):
@@ -357,224 +422,7 @@ namespace SpExecuter.Generator
             return "return " + expr + ";";
         }
 
-        //private static string GenerateReturnStatement(ITypeSymbol returnType)
-        //{
-        //    if (returnType == null)
-        //        return "/* error: returnType was null */ return default;";
-
-        //    // 1) Unwrap Task<T> or ValueTask<T>
-        //    if (returnType is INamedTypeSymbol named)
-        //    {
-        //        var def = named.OriginalDefinition?.ToDisplayString() ?? "";
-        //        if (def.StartsWith("System.Threading.Tasks.Task<", StringComparison.Ordinal) ||
-        //            def.StartsWith("System.Threading.Tasks.ValueTask<", StringComparison.Ordinal))
-        //        {
-        //            // only unwrap if there _is_ a type-arg
-        //            if (named.TypeArguments.Length > 0)
-        //                returnType = named.TypeArguments[0];
-        //            else
-        //                return "/* error: generic Task/ValueTask had no type-args */ return default;";
-        //        }
-        //    }
-
-        //    string expr;
-
-        //    // 2) Tuple via TupleElements (no TupleUnderlyingType)
-        //    if (returnType is INamedTypeSymbol tupleSym && tupleSym.IsTupleType)
-        //    {
-        //        var parts = new List<string>();
-        //        for (int i = 0; i < tupleSym.TupleElements.Length; i++)
-        //        {
-        //            var elemType = tupleSym.TupleElements[i].Type;
-        //            if (elemType is INamedTypeSymbol ne
-        //                && ne.OriginalDefinition?.ToDisplayString().StartsWith("System.Collections.Generic.List<", StringComparison.Ordinal) == true
-        //                && ne.TypeArguments.Length == 1)
-        //            {
-        //                // List<T> element
-        //                var itemT = ne.TypeArguments[0].ToDisplayString();
-        //                parts.Add($"(List<{itemT}>)(response[{i}])");
-        //            }
-        //            else
-        //            {
-        //                // Scalar or object
-        //                var tName = elemType?.ToDisplayString() ?? "object";
-        //                parts.Add($"({tName})response[{i}][0]");
-        //            }
-        //        }
-        //        expr = "(" + string.Join(", ", parts) + ")";
-        //    }
-        //    // 3) Plain List<T>
-        //    else if (returnType is INamedTypeSymbol listSym
-        //             && listSym.OriginalDefinition?.ToDisplayString().StartsWith("System.Collections.Generic.List<", StringComparison.Ordinal) == true
-        //             && listSym.TypeArguments.Length == 1)
-        //    {
-        //        var itemT = listSym.TypeArguments[0].ToDisplayString();
-        //        expr = $"(List<{itemT}>)response[0]";
-        //    }
-        //    // 4) Single value
-        //    else
-        //    {
-        //        var tName = returnType.ToDisplayString() ?? "object";
-        //        expr = $"({tName})response[0][0]";
-        //    }
-
-        //    return "return " + expr + ";";
-        //}
-
-
-        /* public static string GenerateReturnStatement(ITypeSymbol returnType)
-         {
-             string originalDef = returnType.OriginalDefinition.ToDisplayString();
-             bool isGenericTask = originalDef.StartsWith("System.Threading.Tasks.Task<");
-             bool isGenericValueTask = originalDef.StartsWith("System.Threading.Tasks.ValueTask<");
-
-             // Unwrap Task<T> or ValueTask<T>
-             ITypeSymbol innerReturnType = returnType;
-             if ((isGenericTask || isGenericValueTask) &&
-                 returnType is INamedTypeSymbol namedType &&
-                 namedType.TypeArguments.Length == 1)
-             {
-                 innerReturnType = namedType.TypeArguments[0];
-             }
-
-             ExpressionSyntax returnExpr;
-
-             // Handle tuple types (C# tuple or System.Tuple)
-             if (innerReturnType is INamedTypeSymbol namedInner &&
-                 (namedInner.IsTupleType || namedInner.OriginalDefinition.ToDisplayString().StartsWith("System.Tuple<")))
-             {
-                 var elementTypes = namedInner.IsTupleType
-                     ? namedInner.TupleElements.Select(e => e.Type).ToList()
-                     : namedInner.TypeArguments.ToList();
-
-                 var elementExprs = elementTypes.Select((elementType, index) =>
-                 {
-                     var elementAccess = SyntaxFactory.ElementAccessExpression(
-                         SyntaxFactory.ElementAccessExpression(
-                             SyntaxFactory.IdentifierName("response"),
-                             SyntaxFactory.BracketedArgumentList(
-                                 SyntaxFactory.SingletonSeparatedList(
-                                     SyntaxFactory.Argument(
-                                         SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(index))
-                                     )
-                                 )
-                             )
-                         ),
-                         SyntaxFactory.BracketedArgumentList(
-                             SyntaxFactory.SingletonSeparatedList(
-                                 SyntaxFactory.Argument(
-                                     SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(0))
-                                 )
-                             )
-                         )
-                     );
-
-                     return SyntaxFactory.CastExpression(
-                         SyntaxFactory.ParseTypeName(elementType.ToDisplayString()),
-                         elementAccess
-                     );
-                 }).ToList();
-
-                 if (namedInner.IsTupleType)
-                 {
-                     returnExpr = SyntaxFactory.TupleExpression(
-                         SyntaxFactory.SeparatedList(elementExprs.Select(SyntaxFactory.Argument))
-                     );
-                 }
-                 else
-                 {
-                     returnExpr = SyntaxFactory.ObjectCreationExpression(
-                         SyntaxFactory.ParseTypeName(innerReturnType.ToDisplayString())
-                     ).WithArgumentList(
-                         SyntaxFactory.ArgumentList(
-                             SyntaxFactory.SeparatedList(elementExprs.Select(SyntaxFactory.Argument))
-                         )
-                     );
-                 }
-             }
-             else if (innerReturnType is INamedTypeSymbol namedList &&
-                      namedList.OriginalDefinition.ToDisplayString().StartsWith("System.Collections.Generic.List<"))
-             {
-                 var elementAccess = SyntaxFactory.ElementAccessExpression(
-                     SyntaxFactory.ElementAccessExpression(
-                         SyntaxFactory.IdentifierName("response"),
-                         SyntaxFactory.BracketedArgumentList(
-                             SyntaxFactory.SingletonSeparatedList(
-                                 SyntaxFactory.Argument(SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(0)))
-                             )
-                         )
-                     ),
-                     SyntaxFactory.BracketedArgumentList(
-                         SyntaxFactory.SingletonSeparatedList(
-                             SyntaxFactory.Argument(SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(0)))
-                         )
-                     )
-                 );
-
-                 returnExpr = SyntaxFactory.CastExpression(
-                     SyntaxFactory.ParseTypeName(innerReturnType.ToDisplayString()),
-                     elementAccess
-                 );
-             }
-             else
-             {
-                 var elementAccess = SyntaxFactory.ElementAccessExpression(
-                     SyntaxFactory.ElementAccessExpression(
-                         SyntaxFactory.IdentifierName("response"),
-                         SyntaxFactory.BracketedArgumentList(
-                             SyntaxFactory.SingletonSeparatedList(
-                                 SyntaxFactory.Argument(SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(0)))
-                             )
-                         )
-                     ),
-                     SyntaxFactory.BracketedArgumentList(
-                         SyntaxFactory.SingletonSeparatedList(
-                             SyntaxFactory.Argument(SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(0)))
-                         )
-                     )
-                 );
-
-                 returnExpr = SyntaxFactory.CastExpression(
-                     SyntaxFactory.ParseTypeName(innerReturnType.ToDisplayString()),
-                     elementAccess
-                 );
-             }
-
-             if (isGenericTask)
-             {
-                 returnExpr = SyntaxFactory.InvocationExpression(
-                     SyntaxFactory.MemberAccessExpression(
-                         SyntaxKind.SimpleMemberAccessExpression,
-                         SyntaxFactory.ParseName("System.Threading.Tasks.Task"),
-                         SyntaxFactory.GenericName("FromResult")
-                             .WithTypeArgumentList(
-                                 SyntaxFactory.TypeArgumentList(
-                                     SyntaxFactory.SingletonSeparatedList<TypeSyntax>(
-                                         SyntaxFactory.ParseTypeName(innerReturnType.ToDisplayString())
-                                     )
-                                 )
-                             )
-                     ),
-                     SyntaxFactory.ArgumentList(
-                         SyntaxFactory.SingletonSeparatedList(SyntaxFactory.Argument(returnExpr))
-                     )
-                 );
-             }
-             else if (isGenericValueTask)
-             {
-                 returnExpr = SyntaxFactory.ObjectCreationExpression(
-                     SyntaxFactory.ParseTypeName($"System.Threading.Tasks.ValueTask<{innerReturnType.ToDisplayString()}>")
-                 ).WithArgumentList(
-                     SyntaxFactory.ArgumentList(
-                         SyntaxFactory.SingletonSeparatedList(SyntaxFactory.Argument(returnExpr))
-                     )
-                 );
-             }
-
-
-             return SyntaxFactory.ReturnStatement(returnExpr).ToFullString().Substring(9);
-         }
- */
+ 
         private static void GetInitialSyntax(StringBuilder builder,
             string namespaceName, string className, string interfaceName)
         {
@@ -586,17 +434,19 @@ namespace SpExecuter.Generator
 
         }
         private static string GetClassToRegister(Dictionary<string, (string, Lifetime)> pairs,
-            string interfaceName, AttributeData attr)
+            INamedTypeSymbol interfaceSymbol, AttributeData attr)
         {
+            string interfaceName = interfaceSymbol.Name;
+            string namespaceString= interfaceSymbol.ContainingNamespace.ToDisplayString();
             string className = string.Empty;
             if (interfaceName[0] == 'I' || interfaceName[0] == 'i')
             {
-                className = interfaceName.Substring(1);
+                className = namespaceString+"."+interfaceName.Substring(1);
 
             }
             else
             {
-                className = interfaceName + "Class";
+                className = namespaceString + "." + interfaceName + "Class";
 
             }
             TypedConstant lifeTime = attr.ConstructorArguments[0];
@@ -605,9 +455,9 @@ namespace SpExecuter.Generator
                             : Lifetime.Singleton;
             if (!pairs.ContainsKey(interfaceName))
             {
-                pairs.Add(interfaceName, (className, lifetime));
+                pairs.Add(namespaceString + "." + interfaceName, (className, lifetime));
             }
-            return className;
+            return className.Split('.').Last();
         }
     }
 }
