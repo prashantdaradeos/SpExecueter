@@ -11,9 +11,9 @@ public interface IClass1
 {
     [StoredProcedure("1stSp")]
     ValueTask<Class4> ExecuteFrom3(string conString, Class3 class3Obj);
-    [StoredProcedure("2ndSp")]
+    [StoredProcedure("Sp_ExecuteForTupleWithObjects")]
     ValueTask<(Class4, Class5)> ExecuteForTupleWithObjects(string conString, Class3 class3Obj);
-    [StoredProcedure("3rdSp")]
+    [StoredProcedure("Sp_ExecuteForTupleWithListAndObject")]
     ValueTask<(List<Class4>, Class5)> ExecuteForTuplewitListNObject(string conString, Class6 class6Obj);
 
 }
@@ -21,12 +21,15 @@ public interface IClass1
 [SpHandler(Lifetime.Singleton)]
 public interface IClass2
 {
-    [StoredProcedure("3rdSp")]
+    [StoredProcedure("Sp_ExecuteFrom7")]
     ValueTask<List<Class5>> ExecuteFrom7(string conString, Class7 class7Obj);
-    [StoredProcedure("3rdSp")]
+    [StoredProcedure("Sp_ExecuteToLists")]
     ValueTask<(List<Class6>, List<Class5>)> ExecuteToLists(string conString);
-    [StoredProcedure("4thSp")]
+    [StoredProcedure("Sp_ExecuteToListsAnother")]
     ValueTask<GenericSpResponse> ExecuteToListsAnother(string conString);
+    [StoredProcedure("Sp_ExecuteToLists3")]
+    ValueTask<(List<Class6>, List<Class5>,List<Class3>)> ExecuteToLists3(string conString);
+
 }
 public class Class3:ISpResponse
 {
@@ -35,11 +38,10 @@ public class Class3:ISpResponse
     public bool Class3Bool { get; set; }
     public long Class3long { get; set; }
     public double Class3double { get; set; }
-    public List<Class4> Class4List { get; set; }
-    = new List<Class4>();
+   // public List<Class4> Class4List { get; set; } = new List<Class4>();
 
-    [TVPType(typeof(Class4))]
-    public List<string[]> Class4Array { get; set; } = new List<string[]>();
+   // [TVPType(typeof(Class4))]
+   // public List<string[]> Class4Array { get; set; } = new List<string[]>();
     public byte[] Class3Binary { get; set; }
 }
 

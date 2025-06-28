@@ -86,6 +86,7 @@ namespace SpExecuter.Utility
 
     public interface ISpResponse { }
     public class SkipResponse { }
+    public class NoRequest { }
     public class GenericSpResponse : ISpResponse
     {
         public int NumberOfRowsAffected { get; set; } = 0;

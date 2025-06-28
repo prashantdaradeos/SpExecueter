@@ -54,7 +54,7 @@ namespace SpExecuter.Generator
                 GeneratedExecuterClasses(allClassSyntax,
                  array, registerClasses, uniqueResponseClasses, uniqueRequestClasses);
 
-                if(allClassSyntax.Count < 1)
+                if (allClassSyntax.Count < 1)
                 {
                     return;
                 }
@@ -83,39 +83,38 @@ namespace SpExecuter.Generator
         }
 
         private static void GenerateRuntimeDependencies(Dictionary<string, (string, Lifetime)> registerClasses,
-            StringBuilder buildServices,HashSet<string> uniqueRequestClasses,HashSet<string> uniqueResponseClasses)
+            StringBuilder buildServices, HashSet<string> uniqueRequestClasses, HashSet<string> uniqueResponseClasses)
         {
             buildServices.AppendLine(
-                """
-                using Microsoft.Extensions.DependencyInjection;
+                $@"
+using Microsoft.Extensions.DependencyInjection;
 
-                namespace SpExecuter.Utility
+namespace SpExecuter.Utility
 
-                {
-                    public static partial class StartUp
-                    {
+{{
+    public class SpExecuterRegistration : ISpExecuterRegistration
+    {{
                      
-                        static void RegisterForDependencyInjection(IServiceCollection services)
-                        {    
-                """);
+        public void RegisterForDependencyInjection(IServiceCollection services)
+        {{  ");
 
             foreach (var classInfo in registerClasses)
             {
-                buildServices.AppendLine($"""
-                            services.Add{registerClasses[classInfo.Key].Item2.ToString()}<{classInfo.Key},{classInfo.Value.Item1}>();
-                """);
+            buildServices.AppendLine($@"             services.Add{registerClasses[classInfo.Key].Item2.ToString()}<{classInfo.Key},{classInfo.Value.Item1}>();");
             }
             buildServices.AppendLine($"             DBConstants.SpRequestClassesCount = SpRequest.TotalCount ;");
             buildServices.AppendLine($"             DBConstants.SpResponseClassesCount = SpResponse.TotalCount ;");
 
             buildServices.AppendLine($"             DBConstants.SpRequestModelTypeArray = new Type[] {{");
+            buildServices.AppendLine($"                 typeof(SpExecuter.Utility.NoRequest),");
 
-            foreach(string className in uniqueRequestClasses)
+            foreach (string className in uniqueRequestClasses)
             {
                 buildServices.AppendLine($"                 typeof({className}),");
             }
             buildServices.AppendLine("              };");
             buildServices.AppendLine($"             DBConstants.SpResponseModelTypeArray = new Type[] {{");
+            buildServices.AppendLine($"                 typeof(SpExecuter.Utility.SkipResponse),");
 
             foreach (string className in uniqueResponseClasses)
             {
@@ -123,21 +122,18 @@ namespace SpExecuter.Generator
             }
             buildServices.AppendLine("              };");
 
-
-
-            buildServices.AppendLine(""" 
-                        }
-                    }
-                }
-                """);
+            buildServices.AppendLine(@$" 
+        }}
+    }}
+}}");
 
         }
            
 
-    private static void GeneratedExecuterClasses(Dictionary<string, StringBuilder> allClassSyntax,
-          ImmutableArray<ITypeSymbol> interfaces,
-         Dictionary<string, (string, Lifetime)> registerClasses, HashSet<string> uniqueReturnClasses,
-           HashSet<string> uniqueRequestClasses)
+        private static void GeneratedExecuterClasses(Dictionary<string, StringBuilder> allClassSyntax,
+              ImmutableArray<ITypeSymbol> interfaces,
+             Dictionary<string, (string, Lifetime)> registerClasses, HashSet<string> uniqueReturnClasses,
+               HashSet<string> uniqueRequestClasses)
         {
 
             foreach (INamedTypeSymbol interfaceSymbol in interfaces)
