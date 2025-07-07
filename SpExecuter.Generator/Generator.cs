@@ -3,8 +3,10 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Data;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -48,11 +50,13 @@ namespace SpExecuter.Generator
             //For Generating Response class conatining SP Request class info
             StringBuilder requestClassConfiguration = new StringBuilder();
             HashSet<string> uniqueRequestClasses = new HashSet<string>();
+
+            Dictionary<string,StringBuilder> tVPsClasses = new Dictionary<string, StringBuilder>();
             if (!array.IsDefaultOrEmpty)
             {
 
                 GeneratedExecuterClasses(allClassSyntax,
-                 array, registerClasses, uniqueResponseClasses, uniqueRequestClasses);
+                 array, registerClasses, uniqueResponseClasses, uniqueRequestClasses, tVPsClasses);
 
                 if (allClassSyntax.Count < 1)
                 {
@@ -75,7 +79,8 @@ namespace SpExecuter.Generator
                 GenerateResponseClassesConfiguration(uniqueResponseClasses, responseClassConfiguration);
                 context.AddSource($"ResponseClasses.g.cs", SourceText.From(responseClassConfiguration.ToString(), Encoding.UTF8));
 
-                GenerateRuntimeDependencies(registerClasses, buildServices, uniqueRequestClasses, uniqueResponseClasses);
+                GenerateRuntimeDependencies(registerClasses, buildServices, 
+                    uniqueRequestClasses, uniqueResponseClasses, tVPsClasses);
                 context.AddSource($"StartupExtension.g.cs", SourceText.From(buildServices.ToString(), Encoding.UTF8));
 
             }
@@ -83,12 +88,13 @@ namespace SpExecuter.Generator
         }
 
         private static void GenerateRuntimeDependencies(Dictionary<string, (string, Lifetime)> registerClasses,
-            StringBuilder buildServices, HashSet<string> uniqueRequestClasses, HashSet<string> uniqueResponseClasses)
-        {
+            StringBuilder buildServices, HashSet<string> uniqueRequestClasses,
+            HashSet<string> uniqueResponseClasses, Dictionary<string, StringBuilder> tVPsClasses)
+        {   
             buildServices.AppendLine(
                 $@"
 using Microsoft.Extensions.DependencyInjection;
-
+using System.Data;
 namespace SpExecuter.Utility
 
 {{
@@ -97,6 +103,7 @@ namespace SpExecuter.Utility
                      
         public void RegisterForDependencyInjection(IServiceCollection services)
         {{  ");
+
 
             foreach (var classInfo in registerClasses)
             {
@@ -122,7 +129,14 @@ namespace SpExecuter.Utility
             }
             buildServices.AppendLine("              };");
 
+            buildServices.AppendLine(@$"            DBConstants.tVPsdelegates = new Dictionary<string, Delegate>(){{");
+
+            foreach(var keyPair in tVPsClasses)
+            {
+                buildServices.AppendLine($"           [\"{keyPair.Key.Split('.').Last()}\"] = {keyPair.Value}");
+            }
             buildServices.AppendLine(@$" 
+            }};
         }}
     }}
 }}");
@@ -133,7 +147,7 @@ namespace SpExecuter.Utility
         private static void GeneratedExecuterClasses(Dictionary<string, StringBuilder> allClassSyntax,
               ImmutableArray<ITypeSymbol> interfaces,
              Dictionary<string, (string, Lifetime)> registerClasses, HashSet<string> uniqueReturnClasses,
-               HashSet<string> uniqueRequestClasses)
+               HashSet<string> uniqueRequestClasses, Dictionary<string, StringBuilder> tVPsClasses)
         {
 
             foreach (INamedTypeSymbol interfaceSymbol in interfaces)
@@ -182,7 +196,7 @@ namespace SpExecuter.Utility
                             objectParamName = member.Parameters[1].Name;
                             requestTypeName = member.Parameters[1].Type.ToDisplayString();
                             uniqueRequestClasses.Add(requestTypeName);
-
+                            GenerateTVP(member.Parameters[1].Type, tVPsClasses);
                             paramNeeded = "true";
                         }
                         string returnTypes = GetReturnTypeStringForExecuter(member, uniqueReturnClasses);
@@ -201,7 +215,7 @@ namespace SpExecuter.Utility
                     }
 
                     //Class implementation complete
-                    classSyntax.AppendLine("}");
+                    classSyntax.AppendLine("}}");
 
                     allClassSyntax.Add(className, classSyntax);
                 }
@@ -209,6 +223,129 @@ namespace SpExecuter.Utility
 
             }
         }
+
+        private static void GenerateTVP(ITypeSymbol type,
+           Dictionary<string, StringBuilder> tVPsClasses)
+        {
+            
+
+            foreach (var member in type.GetMembers())
+            {
+                if (member is IPropertySymbol property)
+                {
+                    if (property.Type is INamedTypeSymbol propertyType && propertyType.IsGenericType)
+                    {
+                        // Check if it's a generic List<T>
+                        bool isList = propertyType.OriginalDefinition.ToDisplayString() == "System.Collections.Generic.List<T>";
+
+                        if (isList)
+                        {
+                            string propertyName = property.Name;
+                            var elementType = propertyType.TypeArguments[0]; // Get T from List<T>
+                            string elementTypeName = elementType.ToDisplayString();
+                            
+                            if (tVPsClasses.ContainsKey(elementTypeName))
+                            {
+                                continue;
+                            }
+                            StringBuilder tvpFunc = new StringBuilder();
+                            GenerateFunctionDefinition(elementType, tvpFunc);
+                            tVPsClasses.Add(elementTypeName, tvpFunc);
+
+
+                        }
+                    }
+                }
+            }
+        }
+
+        private static void GenerateFunctionDefinition(
+    ITypeSymbol elementType,
+    StringBuilder tvpDelegatesString)
+        {
+            // Fully‑qualified and simple names of the POCO we’re generating for
+            string fullTypeName = elementType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+            string simpleTypeName = elementType.Name;
+
+            // ────────────────────────────────────────────────────────────
+            // Begin delegate source
+            // ────────────────────────────────────────────────────────────
+            tvpDelegatesString.AppendLine($@"
+(System.Collections.IList listObj) =>                    
+{{
+    // 1. Cast IList to the actual generic list
+    var typedList = (System.Collections.Generic.List<{fullTypeName}>)listObj;
+
+    // 2. Create DataTable + columns
+    var dt = new System.Data.DataTable(""{simpleTypeName}"");");
+
+            // ────────────────────────────────────────────────────────────
+            // Generate DataColumn declarations
+            // ────────────────────────────────────────────────────────────
+            foreach (var prop in elementType.GetMembers().OfType<IPropertySymbol>())
+            {
+                // Skip indexers, write‑only props, or collection types (except byte[])
+                if (prop.IsIndexer || prop.SetMethod is null || IsCollectionType(prop.Type)) continue;
+
+                string columnName;
+
+                // Special‑case byte[] so typeof(byte[]) compiles
+                string columnType =
+                    prop.Type is IArrayTypeSymbol arr && arr.ElementType.SpecialType == SpecialType.System_Byte
+                    ? "byte[]"
+                    : prop.Type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+
+                tvpDelegatesString.AppendLine(
+                    $@"        dt.Columns.Add(""{prop.Name}"", typeof({columnType}));");
+            }
+
+            // ────────────────────────────────────────────────────────────
+            // Generate row‑population loop
+            // ────────────────────────────────────────────────────────────
+            tvpDelegatesString.AppendLine($@"
+    // 3. Populate rows
+    foreach (var item in typedList)
+    {{
+        var row = dt.NewRow();");
+
+            foreach (var prop in elementType.GetMembers().OfType<IPropertySymbol>())
+            {
+                if (prop.IsIndexer || prop.SetMethod is null || IsCollectionType(prop.Type)) continue;
+                tvpDelegatesString.AppendLine(
+                    $@"        row[""{prop.Name}""] = item.{prop.Name};");
+            }
+
+            tvpDelegatesString.AppendLine($@"
+        dt.Rows.Add(row);
+    }}
+
+    // 4. Return the DataTable
+    return dt;
+}},");
+
+            // ────────────────────────────────────────────────────────────
+            // Helper: treat byte[] as scalar, everything else collection
+            // ────────────────────────────────────────────────────────────
+            static bool IsCollectionType(ITypeSymbol type) =>
+                type switch
+                {
+                    // byte[] is a scalar for TVP purposes
+                    IArrayTypeSymbol arr when arr.ElementType.SpecialType == SpecialType.System_Byte => false,
+
+                    // Any other array counts as a collection
+                    IArrayTypeSymbol => true,
+
+                    // Any generic type that implements IEnumerable<T> counts as collection
+                    INamedTypeSymbol nt when nt.IsGenericType &&
+                                            nt.AllInterfaces.Any(i =>
+                                                 i.OriginalDefinition.ToDisplayString() ==
+                                                 "System.Collections.Generic.IEnumerable<T>") => true,
+
+                    _ => false
+                };
+        }
+
+       
         private ITypeSymbol GetInterfaceInfo(GeneratorSyntaxContext context, CancellationToken token)
         {
             if (context.Node is InterfaceDeclarationSyntax interfaceDecl &&
@@ -424,7 +561,7 @@ namespace SpExecuter.Utility
         {
             builder.AppendLine("using System.Text;");
             builder.AppendLine("using SpExecuter.Utility;");
-            builder.AppendLine($"namespace {namespaceName};");
+            builder.AppendLine($"namespace {namespaceName}{{");
             builder.AppendLine($"public class {className} : {interfaceName}");
             builder.AppendLine("{");
 

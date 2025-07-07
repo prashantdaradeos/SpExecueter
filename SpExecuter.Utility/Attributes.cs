@@ -22,25 +22,25 @@ namespace SpExecuter.Utility
             StoredProcedureName = storedProcedureName;
         }
     }
-    //On Class for declaring as Table Valued Parameter (TVP)
-    [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
-    public sealed class TVP : Attribute
-    {
-        private string TVPName;
-        public TVP(string tVPName)
-        {
-            TVPName = tVPName;
-        }
-    }
-    //On string[] property for TVP table generation
-    [AttributeUsage(AttributeTargets.Property, AllowMultiple = false)]
-    public sealed class TVPType : Attribute
-    {
-        private Type TVPClassType;
-        public TVPType(Type tVPClassType)
-        {
-            TVPClassType = tVPClassType;
-        }
-    }
+    /* //On Class for declaring as Table Valued Parameter (TVP)
+     [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
+     public sealed class TVP : Attribute
+     {
+         private string TVPName;
+         public TVP(string tVPName)
+         {
+             TVPName = tVPName;
+         }
+     }
+     //On string[] property for TVP table generation
+     [AttributeUsage(AttributeTargets.Property, AllowMultiple = false)]
+     public sealed class TVPType : Attribute
+     {
+         private Type TVPClassType;
+         public TVPType(Type tVPClassType)
+         {
+             TVPClassType = tVPClassType;
+         }
+     }*/
 
 }

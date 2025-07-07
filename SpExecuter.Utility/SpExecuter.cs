@@ -26,6 +26,7 @@ namespace SpExecuter.Utility
             }
             List<ISpResponse>[] allTables = new List<ISpResponse>[returnObjects.Length == 0 ? 1 : returnObjects.Length ];
             GenericSpResponse genericDbResponse = new GenericSpResponse();
+            string currentProp = "NA";
             try
             {
                 using (SqlConnection connection = new SqlConnection(dbName))
@@ -63,43 +64,46 @@ namespace SpExecuter.Utility
                                         {
                                             PropertyInfo prop = AppConstants.SpResponsePropertyInfoCache[objectTypeIndex][j];
                                             bool isNotNull = !reader.IsDBNull(j);
+                                            currentProp = prop.Name;
                                             if (isNotNull)
                                             {
-                                                if (prop.PropertyType == typeof(string))
+                                              
+                                                if (prop.PropertyType == AppConstants.StringType)
                                                 {
                                                     prop.SetValue(dbResponseObject, reader.GetString(j));
                                                 }
-                                                else if (prop.PropertyType == typeof(int))
+                                                else if (prop.PropertyType == AppConstants.IntType)
                                                 {
                                                     prop.SetValue(dbResponseObject, reader.GetInt32(j));
                                                 }
-                                                else if (prop.PropertyType == typeof(bool))
+                                                else if (prop.PropertyType == AppConstants.BoolType)
                                                 {
                                                     prop.SetValue(dbResponseObject, Convert.ToBoolean(reader.GetValue(j)));
                                                 }
-                                                else if (prop.PropertyType == typeof(long))
+                                                else if (prop.PropertyType == AppConstants.LongType)
                                                 {
                                                     prop.SetValue(dbResponseObject, reader.GetInt64(j));
                                                 }
-                                                else if (prop.PropertyType == typeof(DateTime))
+                                                else if (prop.PropertyType == AppConstants.DateTimeType)
                                                 {
                                                     prop.SetValue(dbResponseObject, reader.GetDateTime(j));
                                                 }
-                                                else if (prop.PropertyType == typeof(double))
+                                                else if (prop.PropertyType == AppConstants.DoubleType)
                                                 {
                                                     prop.SetValue(dbResponseObject, reader.GetDouble(j));
                                                 }
-                                                else if (prop.PropertyType == typeof(float))
+                                                else if (prop.PropertyType == AppConstants.FloatType)
                                                 {
-                                                    prop.SetValue(dbResponseObject, reader.GetFloat(j)); // reader.GetFloat = SQL REAL = .NET float
+                                                    prop.SetValue(dbResponseObject, reader.GetFloat(j));
                                                 }
-                                                else if (prop.PropertyType == typeof(byte[]))
+                                                else if (prop.PropertyType == AppConstants.ByteArrayType)
                                                 {
-                                                    long length = reader.GetBytes(j, 0, null, 0, 0); // get length
+                                                    long length = reader.GetBytes(j, 0, null, 0, 0);
                                                     byte[] buffer = new byte[length];
                                                     reader.GetBytes(j, 0, buffer, 0, (int)length);
                                                     prop.SetValue(dbResponseObject, buffer);
                                                 }
+
 
 
                                             }
@@ -119,12 +123,21 @@ namespace SpExecuter.Utility
             }
             catch (Exception ex)
             {
-                StringBuilder info = new StringBuilder().Append(spName).Append("\r\n").Append(dbName).
-                    Append("\r\n").Append(JsonSerializer.ToJsonString(returnObjects)).Append("\r\n")
-                    .Append(JsonSerializer.ToJsonString(spEntity)).Append("\r\n");
+                StringBuilder info = new StringBuilder().AppendLine("Stored Procedure --> " + spName)
+                    .Append("  :::  ")
+                    .AppendLine("Current Property --> " + currentProp)
+                    .Append("  :::  ")
+                    .AppendLine("DataBase --> " + dbName)
+                    .Append("  :::  Return classes --> ");
+                foreach (int objectTypeIndex in returnObjects) {
+                    info.Append(DBConstants.SpResponseModelTypeArray[objectTypeIndex].Name+", ");
+                }
+                    info.AppendLine("")
+                    .AppendLine("  :::  Parameter Object --> " + JsonSerializer.ToJsonString(spEntity))
+                    .AppendLine("  :::  "+ "SQL Parameters --> " );
                 foreach (var oneparam in param)
                 {
-                    info.Append(oneparam.ParameterName).Append(oneparam.Value);
+                    info.Append("       "+oneparam.ParameterName+" : ").AppendLine(oneparam.Value+",  ");
                 }
 
                 throw new SpExecuterException(info, ex);
@@ -133,28 +146,7 @@ namespace SpExecuter.Utility
            
             return allTables;
         }
-        /*public static List<SqlParameter> GetParamFromObject(object obj, int requestObjectNumber)
-        {
-            List<SqlParameter> paramList = new List<SqlParameter>();
-            PropertyInfo[] spParameters = AppConstants.SpRequestPropertyInfoCache[requestObjectNumber];
-            SqlParameter param;
-            foreach (var parameter in spParameters)
-            {
-                string value = Convert.ToString(AppConstants.CachedPropertyAccessorDelegates[requestObjectNumber][parameter.Name](obj));
-                object val;
-                if (string.IsNullOrWhiteSpace(value))
-                {
-                    val = value;
-                }
-                else
-                {
-                    val = DBNull.Value;
-                }
-                param = new SqlParameter($"{AppConstants.AtTheRate}{parameter.Name}", val);
-                paramList.Add(param);
-            }
-            return paramList;
-        }*/
+       
         public static List<SqlParameter> GetParamFromObject(object obj, int requestObjectNumber)
         {
             var paramList = new List<SqlParameter>();
@@ -168,7 +160,7 @@ namespace SpExecuter.Utility
 
                 SqlParameter param;
                 var propType = parameter.PropertyType;
-                if (propType == typeof(byte[]))
+                if (propType == AppConstants.ByteArrayType)
                 {
                     var bytes = rawValue as byte[];
                     param = new SqlParameter(
@@ -180,7 +172,7 @@ namespace SpExecuter.Utility
                         Value = (object)bytes ?? DBNull.Value
                     };
                 }
-                else if (propType == typeof(DateTime) || propType == typeof(DateTime?))
+                else if (propType == AppConstants.DateTimeType || propType == AppConstants.DateTimeNullableType)
                 {
                     var dt = rawValue as DateTime?;
                     param = new SqlParameter("@" + parameter.Name, SqlDbType.DateTime)
@@ -188,7 +180,7 @@ namespace SpExecuter.Utility
                         Value = dt.HasValue ? dt.Value : DBNull.Value
                     };
                 }
-                else if (propType == typeof(DateTimeOffset) || propType == typeof(DateTimeOffset?))
+                else if (propType == AppConstants.DateTimeOffsetType || propType == AppConstants.NullableDateTimeOffsetType)
                 {
                     var dto = rawValue as DateTimeOffset?;
                     param = new SqlParameter("@" + parameter.Name, SqlDbType.DateTimeOffset)
@@ -196,12 +188,27 @@ namespace SpExecuter.Utility
                         Value = dto.HasValue ? dto.Value : DBNull.Value
                     };
                 }
-                else if (propType == typeof(TimeSpan) || propType == typeof(TimeSpan?))
+                else if (propType == AppConstants.TimeSpanType || propType == AppConstants.NullableTimeSpanType)
                 {
                     var ts = rawValue as TimeSpan?;
                     param = new SqlParameter("@" + parameter.Name, SqlDbType.Time)
                     {
                         Value = ts.HasValue ? ts.Value : DBNull.Value
+                    };
+                }
+                else if (propType.IsGenericType
+                    && (propType.GetGenericTypeDefinition() == AppConstants.ListType ||
+                    propType.GetGenericTypeDefinition() == AppConstants.IListType))
+                {
+                    Type elementType = propType.GetGenericArguments()[0];
+                    var list = rawValue as System.Collections.IList;
+                    Delegate del = DBConstants.tVPsdelegates[elementType.Name];
+                    DataTable dt=((Func<System.Collections.IList,DataTable>)del)(list);
+                    // You can iterate it, or convert to DataTable, etc.
+                     param = new SqlParameter("@" + parameter.Name, SqlDbType.Structured)
+                    {
+                        TypeName = "dbo."+elementType.Name, // SQL user-defined table type name
+                        Value = (object)dt ?? DBNull.Value
                     };
                 }
                 else

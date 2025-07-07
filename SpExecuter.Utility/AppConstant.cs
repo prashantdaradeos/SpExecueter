@@ -1,6 +1,9 @@
 ﻿using Sigil;
 using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Data;
+using System.Linq;
 using System.Reflection;
 using System.Text;
 
@@ -14,20 +17,48 @@ namespace SpExecuter.Utility
         public static int SpRequestClassesCount { get; set; }
         public static int SpResponseClassesCount { get; set; }
         public static Type[] SpRequestModelTypeArray { get; set; } 
-        public static Type[] SpResponseModelTypeArray { get; set; } 
+        public static Type[] SpResponseModelTypeArray { get; set; }
+        public static Dictionary<string, Delegate> tVPsdelegates { get; set; } 
+
     }
     internal class AppConstants
     {
         #region Constants
         public const string AtTheRate = "@";
         public const string UnderScore = "_";
+        public static readonly Type StringType = typeof(string);
+        public static readonly Type IntType = typeof(int);
+        public static readonly Type IntNullableType = typeof(int?);
+
+        public static readonly Type BoolType = typeof(bool);
+        public static readonly Type BoolNullableType = typeof(bool?);
+
+        public static readonly Type LongType = typeof(long);
+        public static readonly Type LongNullableType = typeof(long?);
+
+        public static readonly Type DateTimeType = typeof(DateTime);
+        public static readonly Type DateTimeNullableType = typeof(DateTime?);
+
+        public static readonly Type DoubleType = typeof(double);
+        public static readonly Type DoubleNullableType = typeof(double?);
+
+        public static readonly Type FloatType = typeof(float);
+        public static readonly Type FloatNullableType = typeof(float?);
+
+        public static readonly Type ByteArrayType = typeof(byte[]);
+
+        public static readonly Type DateTimeOffsetType = typeof(DateTimeOffset);
+        public static readonly Type NullableDateTimeOffsetType = typeof(DateTimeOffset?);
+
+        public static readonly Type TimeSpanType = typeof(TimeSpan);
+        public static readonly Type NullableTimeSpanType = typeof(TimeSpan?);
+        public static Type ListType { get; } = typeof(List<>);
+        public static Type IListType { get; } = typeof(IList<>);
         #endregion
-      
+
         public static PropertyInfo[][] SpRequestPropertyInfoCache { get; set; }
         public static PropertyInfo[][] SpResponsePropertyInfoCache { get; set; }
-       // public static Type[] SpRequestModelTypeArray { get; set; } 
-       // public static Type[] SpResponseModelTypeArray { get; set; } 
-        public static Type ListType { get; } = typeof(List<>);
+      
         public static Dictionary<string, Func<object, object>>[] CachedPropertyAccessorDelegates { get; set; }
         public static Dictionary<string, Action<object, object>>[] CachedPropertySetterDelegates { get; set; }
 
@@ -36,24 +67,19 @@ namespace SpExecuter.Utility
         public static Func<object, object> CreateGetter(Type targetType,
             string propertyName, PropertyInfo propertyInfo)
         {
-            // Emit IL for a method that gets the value of the property
             var emitter = Emit<Func<object, object>>.NewDynamicMethod($"{targetType.Name}{UnderScore}{propertyName}")
                 .LoadArgument(0)
-                // Cast it from object to the specific type
                 .CastClass(targetType)
-                // Call the property getter
                 .Call(propertyInfo.GetGetMethod(true));
             if (propertyInfo.PropertyType.IsValueType)
             {
                 emitter.Box(propertyInfo.PropertyType);
             }
-            // Return the property value
             emitter.Return();
-            // Compile the IL code into a delegate and return it
             return emitter.CreateDelegate();
 
         }
-        public static Action<object, object> CreateSetter(Type targetType,
+      /*  public static Action<object, object> CreateSetter(Type targetType,
         string propertyName, PropertyInfo propertyInfo)
         {
             // Prepare a DynamicMethod-backed emitter for Action<object,object>
@@ -80,7 +106,7 @@ namespace SpExecuter.Utility
 
             // compile and return the delegate
             return emitter.CreateDelegate();
-        }
+        }*/
         #endregion
     }
 
