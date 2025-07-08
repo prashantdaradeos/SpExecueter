@@ -178,7 +178,7 @@ namespace SpExecuter.Utility
                         string spName = string.Empty;
                         foreach (AttributeData methodAttribute in member.GetAttributes())
                         {
-                            INamedTypeSymbol methodAttributeSymbol = methodAttribute.AttributeClass;
+                            INamedTypeSymbol methodAttributeSymbol = methodAttribute.AttributeClass!;
                             if (methodAttributeSymbol?.Name == "StoredProcedure")
                             {
                                 TypedConstant spNameArg = methodAttribute.ConstructorArguments[0];
@@ -287,7 +287,7 @@ namespace SpExecuter.Utility
                 // Skip indexers, write‑only props, or collection types (except byte[])
                 if (prop.IsIndexer || prop.SetMethod is null || IsCollectionType(prop.Type)) continue;
 
-                string columnName;
+                
 
                 // Special‑case byte[] so typeof(byte[]) compiles
                 string columnType =
@@ -354,11 +354,11 @@ namespace SpExecuter.Utility
                      b.Name.NormalizeWhitespace().ToFullString().Contains("SpHandler")))
                      .Count() > 0)
             {
-                return context.SemanticModel.GetDeclaredSymbol(interfaceDecl) as ITypeSymbol;
+                return context.SemanticModel.GetDeclaredSymbol(interfaceDecl)! as ITypeSymbol;
             }
             else
             {
-                return null;
+                return default!;
             }
         }
         private bool IsCandidateInterface(SyntaxNode node, CancellationToken token)
