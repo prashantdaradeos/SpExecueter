@@ -13,22 +13,30 @@
     <Authors>Prashant Darade</Authors>
     <Description>Roslyn source generator that produces strongly-typed call wrappers for SpExecuter.Utility stored-procedure execution library.</Description>
     <RunAnalyzers>false</RunAnalyzers>
-    <IncludeBuildOutput>false</IncludeBuildOutput>
+    <IncludeBuildOutput>false</IncludeBuildOutput> <!-- Make it true to run locally -->
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageTags>CodePiece.SpExecuter.Generator CodePiece SQL SP StoredProcedure OnePiece</PackageTags>
     <PackageProjectUrl>https://www.nuget.org/packages/SpExecuter.Generator/</PackageProjectUrl>
     <RepositoryUrl>https://github.com/prashantdaradeos/SpExecueter</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
 
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="4.14.0" />
   </ItemGroup>
+
+
+
   <ItemGroup>
-    <None Include="$(TargetPath)"
-          Pack="true"
-          PackagePath="analyzers/dotnet/cs" />
+    <None Include="README.md" Pack="true" PackagePath="" />
+  </ItemGroup>
+
+
+  <!-- Remove this ItemGroup to run locally -->
+  <ItemGroup>
+    <None Include="$(TargetPath)" Pack="true" PackagePath="analyzers/dotnet/cs" />
   </ItemGroup>
 </Project>
