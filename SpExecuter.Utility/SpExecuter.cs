@@ -15,7 +15,7 @@ namespace SpExecuter.Utility
 
     public class SpExecutor
     {
-        public async static Task<List<ISpResponse>[]> ExecuteSpToObjects(string spName,
+        public async static ValueTask<List<ISpResponse>[]> ExecuteSpToObjects(string spName,
             string dbName = default, bool spNeedParameters = true, object spEntity = default,
             List<SqlParameter> param = default, int requestObjectNumber = 0, params int[] returnObjects)
         {
@@ -226,6 +226,90 @@ namespace SpExecuter.Utility
             }
 
             return paramList;
+        }
+        public async static ValueTask<List<List<string[]>>> ExecuteSpToStringArray(
+              string spName, string connectionString,
+              int requestObjectNumber = 0, object spEntity = null!,
+              List<SqlParameter> param = null,
+              int[][] indexesArray = null, int[] takeProperties = null)
+        {
+            // (Optional) build parameters from spEntity if needed
+            if ((param == null || param.Count == 0) && spEntity != null)
+            {
+                param = GetParamFromObject(spEntity, requestObjectNumber);
+            }
+
+            var allResultSets = new List<List<string[]>>();
+            int tableIndex = 0;  // track which result set we are on
+
+            using (var connection = new SqlConnection(connectionString))
+            {
+                 connection.Open();
+                using (var command = new SqlCommand(spName, connection))
+                {
+                    command.CommandType = CommandType.StoredProcedure;
+                    if (param != null)
+                    {
+                        command.Parameters.AddRange(param.ToArray());
+                    }
+
+                    using (var reader = await command.ExecuteReaderAsync())
+                    {
+                        // Loop over each result set (table)
+                        do
+                        {
+                            int numberOfProperties;
+                            int[] currentIndexArray;
+
+                            // 1. If takeProperties specifies a count for this table, use first N columns
+                            if (takeProperties != null && tableIndex < takeProperties.Length)
+                            {
+                                numberOfProperties = takeProperties[tableIndex];
+                                currentIndexArray = Enumerable.Range(0, numberOfProperties).ToArray();
+                            }
+                            // 2. Else if indexesArray specifies indexes for this table, use those indexes
+                            else if (indexesArray != null && tableIndex < indexesArray.Length)
+                            {
+                                currentIndexArray = indexesArray[tableIndex];
+                                numberOfProperties = currentIndexArray.Length;
+                            }
+                            // 3. Otherwise, take all columns by default
+                            else
+                            {
+                                numberOfProperties = reader.FieldCount;
+                                currentIndexArray = Enumerable.Range(0, numberOfProperties).ToArray();
+                            }
+
+                            // Read all rows in this result set
+                            var rows = new List<string[]>();
+                            while (reader.Read())
+                            {
+                                string[] rowValues = new string[numberOfProperties];
+                                for (int i = 0; i < currentIndexArray.Length; i++)
+                                {
+                                    int colIndex = currentIndexArray[i];
+                                    if (!reader.IsDBNull(colIndex))
+                                    {
+                                        rowValues[i] = reader.GetValue(colIndex).ToString()!;
+                                    }
+                                    else
+                                    {
+                                        rowValues[i] = string.Empty;
+                                    }
+                                }
+                                rows.Add(rowValues);
+                            }
+                            allResultSets.Add(rows);
+
+                            tableIndex++;
+                        }
+                        // Move to next result set (table), if any
+                        while (reader.NextResult());
+                    }
+                }
+            }
+
+            return allResultSets;
         }
 
 
