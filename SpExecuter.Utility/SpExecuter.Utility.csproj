@@ -16,7 +16,7 @@
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     <PackageTags>codepiece spexecuter sql sp storedprocedure onepiece</PackageTags>
     <PackageReadmeFile>README.md</PackageReadmeFile>
-  </PropertyGroup>
+  </PropertyGroup> 
 
 
   <ItemGroup>
