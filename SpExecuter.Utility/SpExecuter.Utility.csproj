@@ -4,7 +4,7 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <LangVersion>9.0</LangVersion>
     <PackageId>CodePiece.SpExecuter.Utility</PackageId>
-    <Version>1.0.2</Version>
+    <Version>1.0.0</Version>
     <Authors>Prashant Darade</Authors>
     <Description>Automates stored-procedure execution at runtime exclusively on Microsoft SQL Server.</Description>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
