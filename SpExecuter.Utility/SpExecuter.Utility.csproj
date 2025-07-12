@@ -4,7 +4,7 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <LangVersion>9.0</LangVersion>
     <PackageId>CodePiece.SpExecuter.Utility</PackageId>
-    <Version>1.0.1</Version>
+    <Version>1.0.2</Version>
     <Authors>Prashant Darade</Authors>
     <Description>Automates stored-procedure execution at runtime exclusively on Microsoft SQL Server.</Description>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
@@ -14,7 +14,7 @@
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
-    <PackageTags>CodePiece.SpExecuter.Utility CodePiece SQL SP StoredProcedure OnePiece</PackageTags>
+    <PackageTags>codepiece spexecuter sql sp storedprocedure onepiece</PackageTags>
     <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
 
