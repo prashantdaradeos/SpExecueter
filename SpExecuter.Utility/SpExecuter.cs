@@ -103,7 +103,18 @@ namespace SpExecuter.Utility
                                                     reader.GetBytes(j, 0, buffer, 0, (int)length);
                                                     prop.SetValue(dbResponseObject, buffer);
                                                 }
-
+                                                else if (prop.PropertyType == AppConstants.DecimalType)
+                                                {
+                                                    prop.SetValue(dbResponseObject, reader.GetDecimal(j));
+                                                }
+                                                else if (prop.PropertyType == AppConstants.DateTimeOffsetType)
+                                                {
+                                                    prop.SetValue(dbResponseObject, reader.GetFieldValue<DateTimeOffset>(j));
+                                                }
+                                                else if (prop.PropertyType == AppConstants.TimeSpanType)
+                                                {
+                                                    prop.SetValue(dbResponseObject, reader.GetFieldValue<TimeSpan>(j));
+                                                }
 
 
                                             }
@@ -129,16 +140,25 @@ namespace SpExecuter.Utility
                     .Append("  :::  ")
                     .AppendLine("DataBase --> " + dbName)
                     .Append("  :::  Return classes --> ");
-                foreach (int objectTypeIndex in returnObjects) {
-                    info.Append(DBConstants.SpResponseModelTypeArray[objectTypeIndex].Name+", ");
+                if(returnObjects != default && returnObjects.Count() > 0)
+                {
+                    foreach (int objectTypeIndex in returnObjects)
+                    {
+                        info.Append(DBConstants.SpResponseModelTypeArray[objectTypeIndex].Name + ", ");
+                    }
                 }
+               
                     info.AppendLine("")
                     .AppendLine("  :::  Parameter Object --> " + JsonSerializer.ToJsonString(spEntity))
                     .AppendLine("  :::  "+ "SQL Parameters --> " );
-                foreach (var oneparam in param)
+                if(param != default && param.Count()>0)
                 {
-                    info.Append("       "+oneparam.ParameterName+" : ").AppendLine(oneparam.Value+",  ");
+                    foreach (var oneparam in param)
+                    {
+                        info.Append("       " + oneparam.ParameterName + " : ").AppendLine(oneparam.Value + ",  ");
+                    }
                 }
+               
 
                 throw new SpExecuterException(info, ex);
 

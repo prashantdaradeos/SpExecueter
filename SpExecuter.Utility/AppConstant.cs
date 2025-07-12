@@ -52,6 +52,10 @@ namespace SpExecuter.Utility
 
         public static readonly Type TimeSpanType = typeof(TimeSpan);
         public static readonly Type NullableTimeSpanType = typeof(TimeSpan?);
+
+        public static readonly Type DecimalType = typeof(decimal);
+        public static readonly Type NullableDecimalType = typeof(decimal?);
+
         public static Type ListType { get; } = typeof(List<>);
         public static Type IListType { get; } = typeof(IList<>);
         #endregion
