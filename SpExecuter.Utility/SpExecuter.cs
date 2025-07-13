@@ -177,14 +177,21 @@ namespace SpExecuter.Utility
             {
                 // 1) Get the raw value (object)
                 object rawValue = accessors[parameter.Name](obj);
+                string paramName = "@" + parameter.Name;
 
+                var attr = parameter.GetCustomAttribute<DbParam>();
+                if (attr != null)
+                {
+                    paramName= "@" + attr.DbParamName;
+                }
                 SqlParameter param;
                 var propType = parameter.PropertyType;
+
                 if (propType == AppConstants.ByteArrayType)
                 {
                     var bytes = rawValue as byte[];
                     param = new SqlParameter(
-                         "@" + parameter.Name,
+                        paramName,
                         SqlDbType.VarBinary,
                          -1  // -1 means VARBINARY(MAX)
                     )
@@ -195,7 +202,7 @@ namespace SpExecuter.Utility
                 else if (propType == AppConstants.DateTimeType || propType == AppConstants.DateTimeNullableType)
                 {
                     var dt = rawValue as DateTime?;
-                    param = new SqlParameter("@" + parameter.Name, SqlDbType.DateTime)
+                    param = new SqlParameter(paramName, SqlDbType.DateTime)
                     {
                         Value = dt.HasValue ? dt.Value : DBNull.Value
                     };
@@ -203,7 +210,7 @@ namespace SpExecuter.Utility
                 else if (propType == AppConstants.DateTimeOffsetType || propType == AppConstants.NullableDateTimeOffsetType)
                 {
                     var dto = rawValue as DateTimeOffset?;
-                    param = new SqlParameter("@" + parameter.Name, SqlDbType.DateTimeOffset)
+                    param = new SqlParameter(paramName, SqlDbType.DateTimeOffset)
                     {
                         Value = dto.HasValue ? dto.Value : DBNull.Value
                     };
@@ -211,7 +218,7 @@ namespace SpExecuter.Utility
                 else if (propType == AppConstants.TimeSpanType || propType == AppConstants.NullableTimeSpanType)
                 {
                     var ts = rawValue as TimeSpan?;
-                    param = new SqlParameter("@" + parameter.Name, SqlDbType.Time)
+                    param = new SqlParameter(paramName, SqlDbType.Time)
                     {
                         Value = ts.HasValue ? ts.Value : DBNull.Value
                     };
@@ -224,10 +231,18 @@ namespace SpExecuter.Utility
                     var list = rawValue as System.Collections.IList;
                     Delegate del = DBConstants.tVPsdelegates[elementType.Name];
                     DataTable dt=((Func<System.Collections.IList,DataTable>)del)(list);
-                    // You can iterate it, or convert to DataTable, etc.
-                     param = new SqlParameter("@" + parameter.Name, SqlDbType.Structured)
+
+                    var tvpAttr = elementType.GetCustomAttribute<TVP>();
+                    string tvpName = "dbo." + elementType.Name;
+                    if (tvpAttr != null)
                     {
-                        TypeName = "dbo."+elementType.Name, // SQL user-defined table type name
+                       tvpName = tvpAttr.TVPName;
+                       
+                    }
+                    // You can iterate it, or convert to DataTable, etc.
+                    param = new SqlParameter(paramName, SqlDbType.Structured)
+                    {
+                        TypeName = tvpName, // SQL user-defined table type name
                         Value = (object)dt ?? DBNull.Value
                     };
                 }
@@ -239,7 +254,7 @@ namespace SpExecuter.Utility
                         ? DBNull.Value
                         : str;
 
-                    param = new SqlParameter("@" + parameter.Name, val);
+                    param = new SqlParameter(paramName, val);
                 }
 
                 paramList.Add(param);

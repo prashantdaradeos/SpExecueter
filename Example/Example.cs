@@ -44,7 +44,8 @@ public interface ISingletonSpExecutor
 #region DTOs
 public class HeaderInfo
 {
-    public string Name { get; set; }
+    [DbParam("Name")]
+    public string MyName { get; set; }
     public int Count { get; set; }
     public bool IsActive { get; set; }
     public long LargeNumber { get; set; }
@@ -60,7 +61,7 @@ public class HeaderParameters : HeaderInfo
     public List<Record4TableType> Record4Items { get; set; } = new();
     public List<AuditInfoTableType> AuditItems { get; set; } = new();
 }
-
+[TVP("dbo.Record4TableType")]
 public class Record4TableType 
 {
 

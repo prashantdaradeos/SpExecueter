@@ -14,7 +14,7 @@ var singletonExecutor = provider.GetRequiredService<ISingletonSpExecutor>();
 string connectionString = "Server=localhost\\SQLEXPRESS;Database=Test;Trusted_Connection=True; TrustServerCertificate=True; Integrated Security=True;";
 var headerOnly = new HeaderInfo
 {
-    Name = "OnlyHeader",
+    MyName = "OnlyHeader",
     Count = 1,
     IsActive = false,
     LargeNumber = 98765,
@@ -26,7 +26,7 @@ var headerOnly = new HeaderInfo
 };
 var header = new HeaderParameters
 {
-    Name = "Sample Header",
+    MyName = "Sample Header",
     Count = 10,
     IsActive = true,
     LargeNumber = 1234567890,
