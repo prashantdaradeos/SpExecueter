@@ -1,9 +1,6 @@
 ﻿using Sigil;
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Data;
-using System.Linq;
 using System.Reflection;
 using System.Text;
 
@@ -124,11 +121,11 @@ namespace SpExecuter.Utility
     }
     public class SpExecuterException : Exception
     {
-        public StringBuilder Information { get; set; }
+        public string Information { get; set; }
 
         public SpExecuterException(StringBuilder info, Exception ex) : base(ex.Message, ex)
         {
-            Information = info;
+            Information = info.ToString();
         }
     }
 }

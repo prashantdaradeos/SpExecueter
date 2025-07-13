@@ -22,7 +22,7 @@ namespace SpExecuter.Utility
             StoredProcedureName = storedProcedureName;
         }
     }
-     //On Class for declaring as Table Valued Parameter (TVP)
+     //On Class for declaring as Table Valued Parameter (TVP) Name with different schema
      [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
      public sealed class TVP : Attribute
      {
@@ -32,7 +32,7 @@ namespace SpExecuter.Utility
              TVPName = tVPName;
          }
      }
-    //On string[] property for TVP table generation
+    //On property for different parameter name in Sp
     [AttributeUsage(AttributeTargets.Property, AllowMultiple = false)]
     public sealed class DbParam : Attribute
     {

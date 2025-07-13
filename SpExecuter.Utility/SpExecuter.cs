@@ -6,6 +6,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 using Utf8Json;
 
 
@@ -24,7 +25,7 @@ namespace SpExecuter.Utility
             {
                 param = GetParamFromObject(spEntity, requestObjectNumber);
             }
-            List<ISpResponse>[] allTables = new List<ISpResponse>[returnObjects.Length == 0 ? 1 : returnObjects.Length ];
+            List<ISpResponse>[] allTables = new List<ISpResponse>[returnObjects.Length == 0 ? 1 : returnObjects.Length];
             GenericSpResponse genericDbResponse = new GenericSpResponse();
             string currentProp = "NA";
             try
@@ -67,7 +68,7 @@ namespace SpExecuter.Utility
                                             currentProp = prop.Name;
                                             if (isNotNull)
                                             {
-                                              
+
                                                 if (prop.PropertyType == AppConstants.StringType)
                                                 {
                                                     prop.SetValue(dbResponseObject, reader.GetString(j));
@@ -139,34 +140,41 @@ namespace SpExecuter.Utility
                     .AppendLine("Current Property --> " + currentProp)
                     .Append("  :::  ")
                     .AppendLine("DataBase --> " + dbName)
+                     .Append("  :::  ")
+                    .AppendLine("RequestObjectNumber --> " + requestObjectNumber)
+                    
                     .Append("  :::  Return classes --> ");
-                if(returnObjects != default && returnObjects.Count() > 0)
+                if (returnObjects != default && returnObjects.Count() > 0)
                 {
                     foreach (int objectTypeIndex in returnObjects)
                     {
                         info.Append(DBConstants.SpResponseModelTypeArray[objectTypeIndex].Name + ", ");
                     }
                 }
-               
-                    info.AppendLine("")
-                    .AppendLine("  :::  Parameter Object --> " + JsonSerializer.ToJsonString(spEntity))
-                    .AppendLine("  :::  "+ "SQL Parameters --> " );
-                if(param != default && param.Count()>0)
+
+                info.AppendLine("");
+                    if(spEntity != null)
+                {
+                    info.AppendLine("  :::  Parameter Object --> " + JsonSerializer.ToJsonString(spEntity));
+
+                }
+                info.AppendLine("  :::  " + "SQL Parameters --> ");
+                if (param != default && param.Count() > 0)
                 {
                     foreach (var oneparam in param)
                     {
                         info.Append("       " + oneparam.ParameterName + " : ").AppendLine(oneparam.Value + ",  ");
                     }
                 }
-               
+
 
                 throw new SpExecuterException(info, ex);
 
             }
-           
+
             return allTables;
         }
-       
+
         public static List<SqlParameter> GetParamFromObject(object obj, int requestObjectNumber)
         {
             var paramList = new List<SqlParameter>();
@@ -182,7 +190,7 @@ namespace SpExecuter.Utility
                 var attr = parameter.GetCustomAttribute<DbParam>();
                 if (attr != null)
                 {
-                    paramName= "@" + attr.DbParamName;
+                    paramName = "@" + attr.DbParamName;
                 }
                 SqlParameter param;
                 var propType = parameter.PropertyType;
@@ -230,14 +238,14 @@ namespace SpExecuter.Utility
                     Type elementType = propType.GetGenericArguments()[0];
                     var list = rawValue as System.Collections.IList;
                     Delegate del = DBConstants.tVPsdelegates[elementType.Name];
-                    DataTable dt=((Func<System.Collections.IList,DataTable>)del)(list);
+                    DataTable dt = ((Func<System.Collections.IList, DataTable>)del)(list);
 
                     var tvpAttr = elementType.GetCustomAttribute<TVP>();
                     string tvpName = "dbo." + elementType.Name;
                     if (tvpAttr != null)
                     {
-                       tvpName = tvpAttr.TVPName;
-                       
+                        tvpName = tvpAttr.TVPName;
+
                     }
                     // You can iterate it, or convert to DataTable, etc.
                     param = new SqlParameter(paramName, SqlDbType.Structured)
@@ -268,96 +276,124 @@ namespace SpExecuter.Utility
               List<SqlParameter> param = null,
               int[][] indexesArray = null, int[] takeProperties = null)
         {
-            // (Optional) build parameters from spEntity if needed
-            if ((param == null || param.Count == 0) && spEntity != null)
+            try
             {
-                param = GetParamFromObject(spEntity, requestObjectNumber);
-            }
-
-            var allResultSets = new List<List<string[]>>();
-            int tableIndex = 0;  // track which result set we are on
-
-            using (var connection = new SqlConnection(connectionString))
-            {
-                 connection.Open();
-                using (var command = new SqlCommand(spName, connection))
+                // (Optional) build parameters from spEntity if needed
+                if ((param == null || param.Count == 0) && spEntity != null)
                 {
-                    command.CommandType = CommandType.StoredProcedure;
-                    if (param != null)
-                    {
-                        command.Parameters.AddRange(param.ToArray());
-                    }
+                    param = GetParamFromObject(spEntity, requestObjectNumber);
+                }
 
-                    using (var reader = await command.ExecuteReaderAsync())
+                var allResultSets = new List<List<string[]>>();
+                int tableIndex = 0;  // track which result set we are on
+
+                using (var connection = new SqlConnection(connectionString))
+                {
+                    connection.Open();
+                    using (var command = new SqlCommand(spName, connection))
                     {
-                        // Loop over each result set (table)
-                        do
+                        command.CommandType = CommandType.StoredProcedure;
+                        if (param != null)
                         {
-                            int numberOfProperties;
-                            int[] currentIndexArray;
-
-                            // 1. If takeProperties specifies a count for this table, use first N columns
-                            if (takeProperties != null && tableIndex < takeProperties.Length)
-                            {
-                                numberOfProperties = takeProperties[tableIndex];
-                                currentIndexArray = Enumerable.Range(0, numberOfProperties).ToArray();
-                            }
-                            // 2. Else if indexesArray specifies indexes for this table, use those indexes
-                            else if (indexesArray != null && tableIndex < indexesArray.Length)
-                            {
-                                currentIndexArray = indexesArray[tableIndex];
-                                numberOfProperties = currentIndexArray.Length;
-                            }
-                            // 3. Otherwise, take all columns by default
-                            else
-                            {
-                                numberOfProperties = reader.FieldCount;
-                                currentIndexArray = Enumerable.Range(0, numberOfProperties).ToArray();
-                            }
-
-                            // Read all rows in this result set
-                            var rows = new List<string[]>();
-                            while (reader.Read())
-                            {
-                                string[] rowValues = new string[numberOfProperties];
-                                for (int i = 0; i < currentIndexArray.Length; i++)
-                                {
-                                    int colIndex = currentIndexArray[i];
-                                    if (!reader.IsDBNull(colIndex))
-                                    {
-                                        rowValues[i] = reader.GetValue(colIndex).ToString()!;
-                                    }
-                                    else
-                                    {
-                                        rowValues[i] = string.Empty;
-                                    }
-                                }
-                                rows.Add(rowValues);
-                            }
-                            allResultSets.Add(rows);
-
-                            tableIndex++;
+                            command.Parameters.AddRange(param.ToArray());
                         }
-                        // Move to next result set (table), if any
-                        while (reader.NextResult());
+
+                        using (var reader = await command.ExecuteReaderAsync())
+                        {
+                            // Loop over each result set (table)
+                            do
+                            {
+                                int numberOfProperties;
+                                int[] currentIndexArray;
+
+                                // 1. If takeProperties specifies a count for this table, use first N columns
+                                if (takeProperties != null && tableIndex < takeProperties.Length)
+                                {
+                                    numberOfProperties = takeProperties[tableIndex];
+                                    currentIndexArray = Enumerable.Range(0, numberOfProperties).ToArray();
+                                }
+                                // 2. Else if indexesArray specifies indexes for this table, use those indexes
+                                else if (indexesArray != null && tableIndex < indexesArray.Length)
+                                {
+                                    currentIndexArray = indexesArray[tableIndex];
+                                    numberOfProperties = currentIndexArray.Length;
+                                }
+                                // 3. Otherwise, take all columns by default
+                                else
+                                {
+                                    numberOfProperties = reader.FieldCount;
+                                    currentIndexArray = Enumerable.Range(0, numberOfProperties).ToArray();
+                                }
+
+                                // Read all rows in this result set
+                                var rows = new List<string[]>();
+                                while (reader.Read())
+                                {
+                                    string[] rowValues = new string[numberOfProperties];
+                                    for (int i = 0; i < currentIndexArray.Length; i++)
+                                    {
+                                        int colIndex = currentIndexArray[i];
+                                        if (!reader.IsDBNull(colIndex))
+                                        {
+                                            rowValues[i] = reader.GetValue(colIndex).ToString()!;
+                                        }
+                                        else
+                                        {
+                                            rowValues[i] = string.Empty;
+                                        }
+                                    }
+                                    rows.Add(rowValues);
+                                }
+                                allResultSets.Add(rows);
+
+                                tableIndex++;
+                            }
+                            // Move to next result set (table), if any
+                            while (reader.NextResult());
+                        }
                     }
                 }
-            }
 
-            return allResultSets;
+                return allResultSets;
+
+            }
+            catch (Exception ex)
+            {
+                StringBuilder info = new StringBuilder().AppendLine("Stored Procedure --> " + spName)
+                    .Append("  :::  ")
+                    .AppendLine("DataBase --> " + connectionString);
+                if (spEntity != null)
+                {
+                    info.AppendLine("  :::  Parameter Object --> " + JsonSerializer.ToJsonString(spEntity));
+
+                }
+
+                if (param != default && param.Count() > 0)
+                {
+                    info.AppendLine("  :::  " + "SQL Parameters --> ");
+                    foreach (var oneparam in param)
+                    {
+                        info.Append("       " + oneparam.ParameterName + " : ").AppendLine(oneparam.Value + ",  ");
+                    }
+                }
+
+
+                throw new SpExecuterException(info, ex);
+
+            }
         }
 
 
         public static List<T> GetStronglyTypedList<T>(List<ISpResponse> raw)
+        {
+            List<T> result = new List<T>(raw.Count);
+            for (int i = 0; i < raw.Count; i++)
             {
-                List<T> result = new List<T>(raw.Count);
-                for (int i = 0; i < raw.Count; i++)
-                {
-                    result.Add((T)raw[i]);
-                }
-                return result;
+                result.Add((T)raw[i]);
             }
-        
+            return result;
+        }
+
 
     }
 

@@ -86,29 +86,37 @@ var header = new HeaderParameters
 
 
 
-HeaderResult single = await scopedExecutor.GetSingleRecordAsync(connectionString, header);
+try
+{
+    HeaderResult single = await scopedExecutor.GetSingleRecordAsync(connectionString, header);
 
-(HeaderResult h, Record4Result r4, AuditInfoResult a) =
-    await scopedExecutor.GetTupleOfRecordsAsync(connectionString, header);
+    (HeaderResult h, Record4Result r4, AuditInfoResult a) =
+        await scopedExecutor.GetTupleOfRecordsAsync(connectionString, header);
 
-(List<HeaderResult> headers, Record4Result singleRecord4) =
-    await scopedExecutor.GetListAndObjectAsync(connectionString, header);
+    (List<HeaderResult> headers, Record4Result singleRecord4) =
+        await scopedExecutor.GetListAndObjectAsync(connectionString, header);
 
-List<HeaderResult> headerList = await singletonExecutor.GetListAsync(connectionString, header);
+    List<HeaderResult> headerList = await singletonExecutor.GetListAsync(connectionString, header);
 
-(List<HeaderResult> headers2, List<Record4Result> record4s2) =
-    await singletonExecutor.GetTwoListsAsync(connectionString,header);
+    (List<HeaderResult> headers2, List<Record4Result> record4s2) =
+        await singletonExecutor.GetTwoListsAsync(connectionString, header);
 
-GenericSpResponse staticInsertResult = await singletonExecutor.GetGenericResponseAsync(connectionString);
+    GenericSpResponse staticInsertResult = await singletonExecutor.GetGenericResponseAsync(connectionString);
 
 
-GenericSpResponse insertHeaderResult =
-    await singletonExecutor.GetGenericResponseAsync(connectionString, headerOnly);
+    GenericSpResponse insertHeaderResult =
+        await singletonExecutor.GetGenericResponseAsync(connectionString, headerOnly);
 
-(List<HeaderResult> hList, List<Record4Result> rList, List<AuditInfoResult> aList) =
-    await singletonExecutor.GetThreeListsAsync(connectionString,header);
+    (List<HeaderResult> hList, List<Record4Result> rList, List<AuditInfoResult> aList) =
+        await singletonExecutor.GetThreeListsAsync(connectionString, header);
 
-var resultInStringArray = await SpExecutor.ExecuteSpToStringArray("SaveFullHeaderDetails", connectionString, 1, header);
-
+    //Before calling this method build at least Once to get IntelliSense 
+    var resultInStringArray = await SpExecutor.ExecuteSpToStringArray("SaveFullHeaderDetails", connectionString, SpRequest.HeaderParameters, header);
+}
+catch (SpExecuterException exca)
+{
+    //Log, Debugg with information
+   string extraInfo= exca.Information;
+}
 Console.WriteLine("Test execution completed.");
 
