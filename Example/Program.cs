@@ -88,6 +88,7 @@ var header = new HeaderParameters
 
 try
 {
+    //Call the stored procedure with parameters
     HeaderResult single = await scopedExecutor.GetSingleRecordAsync(connectionString, header);
 
     (HeaderResult h, Record4Result r4, AuditInfoResult a) =
@@ -107,16 +108,16 @@ try
     GenericSpResponse insertHeaderResult =
         await singletonExecutor.GetGenericResponseAsync(connectionString, headerOnly);
 
-    (List<HeaderResult> hList, List<Record4Result> rList, List<AuditInfoResult> aList) =
+    (List<HeaderResult> hList, _, List<AuditInfoResult> aList) =
         await singletonExecutor.GetThreeListsAsync(connectionString, header);
 
-    //Before calling this method build at least Once to get IntelliSense 
+    //Before calling this method build at least Once to get IntelliSense for request object number
     var resultInStringArray = await SpExecutor.ExecuteSpToStringArray("SaveFullHeaderDetails", connectionString, SpRequest.HeaderParameters, header);
 }
-catch (SpExecuterException exca)
+catch (SpExecuterException ex)
 {
     //Log, Debugg with information
-   string extraInfo= exca.Information;
+   string extraInfo= ex.Information;
 }
 Console.WriteLine("Test execution completed.");
 

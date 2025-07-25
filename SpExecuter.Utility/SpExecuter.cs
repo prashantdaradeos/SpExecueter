@@ -141,27 +141,27 @@ namespace SpExecuter.Utility
                     .Append("  :::  ")
                     .AppendLine("DataBase --> " + dbName)
                      .Append("  :::  ")
-                    .AppendLine("RequestObjectNumber --> " + requestObjectNumber)
-                    
-                    .Append("  :::  Return classes --> ");
+                    .AppendLine("RequestObjectNumber --> " + requestObjectNumber);
+
                 if (returnObjects != default && returnObjects.Count() > 0)
                 {
+                    info.Append("  :::  Return classes --> ");
                     foreach (int objectTypeIndex in returnObjects)
                     {
                         info.Append(DBConstants.SpResponseModelTypeArray[objectTypeIndex].Name + ", ");
                     }
                 }
 
-                info.AppendLine("");
+                info.AppendLine();
                     if(spEntity != null)
                 {
                     info.AppendLine("  :::  Parameter Object --> " + JsonSerializer.ToJsonString(spEntity));
 
                 }
-                info.AppendLine("  :::  " + "SQL Parameters --> ");
                 if (param != default && param.Count() > 0)
                 {
-                    foreach (var oneparam in param)
+                    info.AppendLine("  :::  " + "SQL Parameters --> ");
+                     foreach (var oneparam in param)
                     {
                         info.Append("       " + oneparam.ParameterName + " : ").AppendLine(oneparam.Value + ",  ");
                     }
