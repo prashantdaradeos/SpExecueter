@@ -25,6 +25,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="bin\**" />
+    <EmbeddedResource Remove="bin\**" />
+    <None Remove="bin\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="4.14.0" />
   </ItemGroup>
 
@@ -32,6 +38,12 @@
 
   <ItemGroup>
     <None Include="README.md" Pack="true" PackagePath="" />
+  </ItemGroup>
+
+
+
+  <ItemGroup>
+    <None Remove="P:\PRASHANT\Study\Code\RND\SpExecuter\nuget\SpExecuter.Generator\bin\Debug\netstandard2.0\SpExecuter.Generator.dll" />
   </ItemGroup>
 
 
