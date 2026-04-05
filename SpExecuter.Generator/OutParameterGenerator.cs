@@ -16,6 +16,7 @@ namespace SpExecuter.Generator
         {
 
             StringBuilder resultBindingImpl = new StringBuilder();
+            Validations.ValidateOutTypes(info,resultBindingImpl);
             if (info.IsNonQuery)
             {
                 resultBindingImpl.AppendLine($"         int rows= await command.ExecuteNonQueryAsync();");

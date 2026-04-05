@@ -32,14 +32,10 @@ namespace SpExecuter.Utility
     public sealed class ParamConfig : Attribute
     {
         public string DBParam { get;set; }//Can be applied on IN and OUT parameters
-
-        public bool OutParam { get; set; } = false;//Can be applied on IN parameters
-        public bool ParamExclusion { get; set; } = false;//Can be applied on IN parameters
-
         public bool Unique { get; set; } = false;//Can be applied only on OUT parameters
+        public bool ParamExclusion { get; set; } = false;//Can be applied on IN parameters
         public bool ResultExclusion { get; set; } = false;//Can be applied on OUT parameters
-
-
+        public bool OutParam { get; set; } = false;//Can be applied on IN parameters
      
     }
     //On Class for declaring as Table Valued Parameter (TVP) Name with different schema

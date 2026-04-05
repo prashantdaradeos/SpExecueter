@@ -14,35 +14,35 @@ namespace Example.DataAccess;
 public interface ITransientSpExecutor
 {
     [StoredProcedure("TransientTest1")]
-    Task<BaseClass0> Test1_With_Single(string connectionString, TestClass parameters);
+    Task<OutBaseTestClass> Test1_With_Single(string connectionString, InBaseTestClass parameters);
     [StoredProcedure("TransientTest2")]
-    Task<List<TestClass>> Test2_With_List(string connectionString, HeaderParameters parameters);
+    Task<List<TestClass>> Test2_With_List(string connectionString, TestClass111 parameters);
     [StoredProcedure("TransientTest3")]
-    Task<(TestClass, HeaderResult)> Test3_With_TupleContainingSingle(string connectionString);
+    Task<(TestClass, HeaderResult1)> Test3_With_TupleContainingSingle(string connectionString);
     [StoredProcedure("TransientTest4")]
-    Task<(List<TestClass>, List<HeaderResult>)> Test4_With_TupleContaing2List(string connectionString, HeaderParameters parameters);
+    Task<(List<TestClass>, List<HeaderResult1>)> Test4_With_TupleContaing2List(string connectionString, TestClass111 parameters);
     [StoredProcedure("TransientTest5")]
-    Task<(List<HeaderResult>, TestClass)> Test5_With_TupleContaingSingleNList(string connectionString, HeaderParameters parameters);
+    Task<(List<HeaderResult1>, TestClass)> Test5_With_TupleContaingSingleNList(string connectionString, TestClass111 parameters);
 
     [StoredProcedure("TransientTest6")]
-    Task<((List<TestClass1>, HeaderResult)?, TestClass1)> Test6_With_Tuple_N_Single(string connectionString, HeaderParameters parameters);
+    Task<((List<TestClass1>, HeaderResult1)?, TestClass1)> Test6_With_Tuple_N_Single(string connectionString, TestClass111 parameters);
 
     [StoredProcedure("TransientTest7")]
-    Task<((HeaderResult, List<Record4Result>)?, List<HeaderResult>)> Test7_With_Tuple_N_List(string connectionString, HeaderParameters parameters);
+    Task<((HeaderResult1, List<Record4Result>)?, List<HeaderResult1>)> Test7_With_Tuple_N_List(string connectionString, TestClass111 parameters);
 
     [StoredProcedure("TransientTest8")]
     Task<((List<TestClass1>, TestClass2)?,
         (List<TestClass1>, TestClass2, List<TestClass3>, TestClass8)?
-        , (List<TestClass1>, TestClass10, List<TestClass11>, TestClass12)?)> Test8_With_Tuple_Single_List(string connectionString, HeaderParameters parameters);
+        , (List<TestClass1>, TestClass10, List<TestClass11>, TestClass12)?)> Test8_With_Tuple_Single_List(string connectionString, TestClass111 parameters);
 
     [StoredProcedure("TransientTest9")]
-    Task<((List<HeaderResult>, TestClass1)?,
-          (List<HeaderResult>, List<Record4Result>, TestClass1)?,
-          List<HeaderResult>)> Test9_With_2Tuple_Single(string connectionString, HeaderParameters parameters);
+    Task<((List<HeaderResult1>, TestClass1)?,
+          (List<HeaderResult1>, List<Record4Result>, TestClass1)?,
+          List<HeaderResult1>)> Test9_With_2Tuple_Single(string connectionString, TestClass111 parameters);
 
 
     [StoredProcedure("TransientTest10", ConditionType = ConditionType.OR)]
-    Task<(List<HeaderResult>, TestClass1)> Test10_With_OR(string connectionString, HeaderParameters parameters);
+    Task<(List<HeaderResult11>, TestClass1)> Test10_With_OR(string connectionString, TestClass111 parameters);
 
 
 }
@@ -53,7 +53,7 @@ public interface IScopedSpExecutor
 
     // Single record
     [StoredProcedure("ScopedTest1")]
-    Task<HeaderResult> Test1_Single(string connectionString, HeaderParameters parameters);
+    Task<HeaderResult1> Test1_Single(string connectionString, HeaderParameters parameters);
 
     // Single no params
     [StoredProcedure("ScopedTest2")]
@@ -61,7 +61,7 @@ public interface IScopedSpExecutor
 
     // List
     [StoredProcedure("ScopedTest3")]
-    Task<List<HeaderResult>> Test3_List(string connectionString, HeaderParameters parameters);
+    Task<List<HeaderResult1>> Test3_List(string connectionString, HeaderParameters parameters);
 
     // List no params
     [StoredProcedure("ScopedTest4")]
@@ -71,15 +71,15 @@ public interface IScopedSpExecutor
 
     // Flat tuple: 2 singles
     [StoredProcedure("ScopedTest5")]
-    Task<(HeaderResult, Record4Result)> Test5_Flat_2Singles(string connectionString, HeaderParameters parameters);
+    Task<(HeaderResult1, Record4Result)> Test5_Flat_2Singles(string connectionString, HeaderParameters parameters);
 
     // Flat tuple: 2 lists
     [StoredProcedure("ScopedTest6")]
-    Task<(List<HeaderResult>, List<Record4Result>)> Test6_Flat_2Lists(string connectionString, HeaderParameters parameters);
+    Task<(List<HeaderResult1>, List<Record4Result>)> Test6_Flat_2Lists(string connectionString, HeaderParameters parameters);
 
     // Flat tuple: 3 mixed (single, list, single)
     [StoredProcedure("ScopedTest7")]
-    Task<(TestClass1, List<HeaderResult>, AuditInfoResult)> Test7_Flat_3Mixed(string connectionString, HeaderParameters parameters);
+    Task<(TestClass1, List<HeaderResult1>, AuditInfoResult)> Test7_Flat_3Mixed(string connectionString, HeaderParameters parameters);
 
     // Flat tuple: 4 alternating (list, single, list, single)
     [StoredProcedure("ScopedTest8")]
@@ -91,17 +91,17 @@ public interface IScopedSpExecutor
 
     // Flat tuple: 5 all lists
     [StoredProcedure("ScopedTest10")]
-    Task<(List<HeaderResult>, List<Record4Result>, List<AuditInfoResult>, List<TestClass1>, List<TestClass2>)> Test10_Flat_5AllLists(string connectionString, HeaderParameters parameters);
+    Task<(List<HeaderResult1>, List<Record4Result>, List<AuditInfoResult>, List<TestClass1>, List<TestClass2>)> Test10_Flat_5AllLists(string connectionString, HeaderParameters parameters);
 
     // Flat tuple: 5 all singles
     [StoredProcedure("ScopedTest11")]
-    Task<(HeaderResult, Record4Result, AuditInfoResult, TestClass1, TestClass2)> Test11_Flat_5AllSingles(string connectionString, HeaderParameters parameters);
+    Task<(HeaderResult1, Record4Result, AuditInfoResult, TestClass1, TestClass2)> Test11_Flat_5AllSingles(string connectionString, HeaderParameters parameters);
 
     // === 1 NESTED TUPLE (varying inner lengths 2–4) ===
 
     // 1 nested(2 elem) + single
     [StoredProcedure("ScopedTest12")]
-    Task<((List<TestClass1>, HeaderResult)?, TestClass2)> Test12_1Nested_2Elem_Single(string connectionString, HeaderParameters parameters);
+    Task<((List<TestClass1>, HeaderResult1)?, TestClass2)> Test12_1Nested_2Elem_Single(string connectionString, HeaderParameters parameters);
 
     // 1 nested(2 elem) + list
     [StoredProcedure("ScopedTest13")]
@@ -125,7 +125,7 @@ public interface IScopedSpExecutor
 
     // 2 nested: (2, 3) incremental + list
     [StoredProcedure("ScopedTest17")]
-    Task<((HeaderResult, List<TestClass1>)?,
+    Task<((HeaderResult1, List<TestClass1>)?,
         (TestClass2, List<TestClass3>, TestClass4)?,
         List<TestClass5>)> Test17_2Nested_2_3_List(string connectionString, HeaderParameters parameters);
 
@@ -139,7 +139,7 @@ public interface IScopedSpExecutor
     [StoredProcedure("ScopedTest19")]
     Task<((List<TestClass3>, TestClass4, List<TestClass5>, TestClass6)?,
         (TestClass7, List<TestClass8>)?,
-        List<HeaderResult>)> Test19_2Nested_Dec_4_2_List(string connectionString, HeaderParameters parameters);
+        List<HeaderResult1>)> Test19_2Nested_Dec_4_2_List(string connectionString, HeaderParameters parameters);
 
     // 2 nested: (3, 3) same + single
     [StoredProcedure("ScopedTest20")]
@@ -179,7 +179,7 @@ public interface IScopedSpExecutor
     Task<((List<TestClass1>, TestClass2, List<TestClass3>, TestClass4)?,
         (TestClass5, List<TestClass6>, TestClass7)?,
         (List<TestClass8>, TestClass9)?,
-        List<HeaderResult>)> Test25_3Nested_Dec_4_3_2_List(string connectionString, HeaderParameters parameters);
+        List<HeaderResult1>)> Test25_3Nested_Dec_4_3_2_List(string connectionString, HeaderParameters parameters);
 
     // 3 nested: spike (2, 4, 2) — short-long-short + single
     [StoredProcedure("ScopedTest26")]
@@ -224,7 +224,7 @@ public interface IScopedSpExecutor
         (TestClass5, List<TestClass6>)?,
         (List<TestClass7>, TestClass8, List<TestClass9>)?,
         (TestClass10, List<TestClass1>, TestClass2, List<TestClass3>)?,
-        HeaderResult)> Test31_4Nested_Inc_2_2_3_4_Single(string connectionString, HeaderParameters parameters);
+        HeaderResult1)> Test31_4Nested_Inc_2_2_3_4_Single(string connectionString, HeaderParameters parameters);
 
     // 4 nested: decremental (4, 3, 2, 2) + list
     [StoredProcedure("ScopedTest32")]
@@ -248,7 +248,7 @@ public interface IScopedSpExecutor
         (TestClass1, List<TestClass2>)?,
         (List<TestClass3>, TestClass4)?,
         (TestClass5, List<TestClass6>, TestClass7, List<TestClass8>)?,
-        List<HeaderResult>)> Test34_4Nested_Bookend_4_2_2_4_List(string connectionString, HeaderParameters parameters);
+        List<HeaderResult1>)> Test34_4Nested_Bookend_4_2_2_4_List(string connectionString, HeaderParameters parameters);
 
     // 4 nested: all same (3, 3, 3, 3) + single
     [StoredProcedure("ScopedTest35")]
@@ -285,7 +285,7 @@ public interface IScopedSpExecutor
         (TestClass5, List<TestClass6>, TestClass7)?,
         (List<TestClass8>, TestClass9)?,
         (TestClass10, List<TestClass1>)?,
-        HeaderResult)> Test38_5Nested_Dec_4_3_3_2_2_Single(string connectionString, HeaderParameters parameters);
+        HeaderResult1)> Test38_5Nested_Dec_4_3_3_2_2_Single(string connectionString, HeaderParameters parameters);
 
     // 5 nested: pyramid (2, 3, 4, 3, 2) + list
     [StoredProcedure("ScopedTest39")]
@@ -312,7 +312,7 @@ public interface IScopedSpExecutor
         (List<TestClass6>, TestClass7)?,
         (TestClass8, List<TestClass9>)?,
         (List<TestClass10>, TestClass1)?,
-        List<HeaderResult>)> Test41_5Nested_AllSame_2_2_2_2_2_List(string connectionString, HeaderParameters parameters);
+        List<HeaderResult1>)> Test41_5Nested_AllSame_2_2_2_2_2_List(string connectionString, HeaderParameters parameters);
 
     // === 6 NESTED TUPLES ===
 
@@ -324,7 +324,7 @@ public interface IScopedSpExecutor
         (TestClass9, List<TestClass10>, TestClass1)?,
         (List<TestClass2>, TestClass3, List<TestClass4>, TestClass5)?,
         (TestClass6, List<TestClass7>, TestClass8, List<TestClass9>)?,
-        HeaderResult)> Test39_6Nested_PairInc_2_2_3_3_4_4_Single(string connectionString, HeaderParameters parameters);
+        HeaderResult1)> Test39_6Nested_PairInc_2_2_3_3_4_4_Single(string connectionString, HeaderParameters parameters);
 
     // 6 nested: all minimal (2, 2, 2, 2, 2, 2) + list
     [StoredProcedure("ScopedTest43")]
@@ -354,7 +354,7 @@ public interface IScopedSpExecutor
 
     // OR list
     [StoredProcedure("ScopedTest46", ConditionType = ConditionType.OR)]
-    Task<List<HeaderResult>> Test43_OR_List(string connectionString, HeaderParameters parameters);
+    Task<List<HeaderResult1>> Test43_OR_List(string connectionString, HeaderParameters parameters);
 
     // OR flat tuple
     [StoredProcedure("ScopedTest47", ConditionType = ConditionType.OR)]
@@ -386,7 +386,7 @@ public interface ISingletonSpExecutor
 
     // Single no params
     [StoredProcedure("SingletonTest2")]
-    Task<HeaderResult> Test2_Single_NoParams(string connectionString);
+    Task<HeaderResult1> Test2_Single_NoParams(string connectionString);
 
     // List
     [StoredProcedure("SingletonTest3")]
@@ -404,7 +404,7 @@ public interface ISingletonSpExecutor
 
     // Flat 2 lists
     [StoredProcedure("SingletonTest6")]
-    Task<(List<HeaderResult>, List<AuditInfoResult>)> Test6_Flat_2Lists(string connectionString, HeaderParameters parameters);
+    Task<(List<HeaderResult1>, List<AuditInfoResult>)> Test6_Flat_2Lists(string connectionString, HeaderParameters parameters);
 
     // Flat 3 (list, single, list)
     [StoredProcedure("SingletonTest7")]
@@ -424,7 +424,7 @@ public interface ISingletonSpExecutor
 
     // Flat 6 zigzag (list, single, list, single, list, single)
     [StoredProcedure("SingletonTest11")]
-    Task<(List<HeaderResult>, TestClass1, List<Record4Result>, TestClass2, List<AuditInfoResult>, TestClass3)> Test11_Flat_6Zigzag(string connectionString, HeaderParameters parameters);
+    Task<(List<HeaderResult1>, TestClass1, List<Record4Result>, TestClass2, List<AuditInfoResult>, TestClass3)> Test11_Flat_6Zigzag(string connectionString, HeaderParameters parameters);
 
     // === 1 NESTED TUPLE (at different positions with flat elements) ===
 
@@ -442,7 +442,7 @@ public interface ISingletonSpExecutor
 
     // list + 1 nested(2 elem) at end
     [StoredProcedure("SingletonTest15")]
-    Task<(List<HeaderResult>, (TestClass9, List<TestClass10>)?)> Test15_1Nested_2Elem_AtEnd(string connectionString, HeaderParameters parameters);
+    Task<(List<HeaderResult1>, (TestClass9, List<TestClass10>)?)> Test15_1Nested_2Elem_AtEnd(string connectionString, HeaderParameters parameters);
 
     // 1 nested(4 elem) at start + single
     [StoredProcedure("SingletonTest16")]
@@ -480,7 +480,7 @@ public interface ISingletonSpExecutor
     [StoredProcedure("SingletonTest21")]
     Task<((List<TestClass6>, TestClass7, List<TestClass8>, TestClass9)?,
         (TestClass10, List<TestClass1>, TestClass2)?,
-        HeaderResult)> Test21_2Nested_4_3_Single(string connectionString, HeaderParameters parameters);
+        HeaderResult1)> Test21_2Nested_4_3_Single(string connectionString, HeaderParameters parameters);
 
     // === 3 NESTED TUPLES ===
 
@@ -496,7 +496,7 @@ public interface ISingletonSpExecutor
     Task<((TestClass3, List<TestClass4>, TestClass5, List<TestClass6>)?,
         (List<TestClass7>, TestClass8, List<TestClass9>)?,
         (TestClass10, List<TestClass1>)?,
-        HeaderResult)> Test23_3Nested_Dec_4_3_2_Single(string connectionString, HeaderParameters parameters);
+        HeaderResult1)> Test23_3Nested_Dec_4_3_2_Single(string connectionString, HeaderParameters parameters);
 
     // 3 nested: spike (2, 4, 2) + list
     [StoredProcedure("SingletonTest24")]
@@ -535,7 +535,7 @@ public interface ISingletonSpExecutor
         (TestClass5, List<TestClass6>)?,
         (List<TestClass7>, TestClass8, List<TestClass9>)?,
         (TestClass10, List<TestClass1>, TestClass2, List<TestClass3>)?,
-        HeaderResult)> Test28_4Nested_Inc_2_2_3_4_Single(string connectionString, HeaderParameters parameters);
+        HeaderResult1)> Test28_4Nested_Inc_2_2_3_4_Single(string connectionString, HeaderParameters parameters);
 
     // 4 nested: decremental (4, 3, 2, 2) + list
     [StoredProcedure("SingletonTest29")]
@@ -559,7 +559,7 @@ public interface ISingletonSpExecutor
         (TestClass1, List<TestClass2>)?,
         (List<TestClass3>, TestClass4)?,
         (TestClass5, List<TestClass6>, TestClass7, List<TestClass8>)?,
-        List<HeaderResult>)> Test31_4Nested_Bookend_4_2_2_4_List(string connectionString, HeaderParameters parameters);
+        List<HeaderResult1>)> Test31_4Nested_Bookend_4_2_2_4_List(string connectionString, HeaderParameters parameters);
 
     // 4 nested: all same (3, 3, 3, 3) + single
     [StoredProcedure("SingletonTest32")]
@@ -596,7 +596,7 @@ public interface ISingletonSpExecutor
         (TestClass5, List<TestClass6>, TestClass7)?,
         (List<TestClass8>, TestClass9)?,
         (TestClass10, List<TestClass1>)?,
-        HeaderResult)> Test35_5Nested_Dec_4_3_3_2_2_Single(string connectionString, HeaderParameters parameters);
+        HeaderResult1)> Test35_5Nested_Dec_4_3_3_2_2_Single(string connectionString, HeaderParameters parameters);
 
     // 5 nested: pyramid (2, 3, 4, 3, 2) + list
     [StoredProcedure("SingletonTest36")]
@@ -623,7 +623,7 @@ public interface ISingletonSpExecutor
         (List<TestClass6>, TestClass7)?,
         (TestClass8, List<TestClass9>)?,
         (List<TestClass10>, TestClass1)?,
-        List<HeaderResult>)> Test38_5Nested_AllSame_2_2_2_2_2_List(string connectionString, HeaderParameters parameters);
+        List<HeaderResult1>)> Test38_5Nested_AllSame_2_2_2_2_2_List(string connectionString, HeaderParameters parameters);
 
     // === 6 NESTED TUPLES ===
 
@@ -635,7 +635,7 @@ public interface ISingletonSpExecutor
         (TestClass9, List<TestClass10>, TestClass1)?,
         (List<TestClass2>, TestClass3, List<TestClass4>, TestClass5)?,
         (TestClass6, List<TestClass7>, TestClass8, List<TestClass9>)?,
-        HeaderResult)> Test39_6Nested_PairInc_2_2_3_3_4_4_Single(string connectionString, HeaderParameters parameters);
+        HeaderResult1)> Test39_6Nested_PairInc_2_2_3_3_4_4_Single(string connectionString, HeaderParameters parameters);
 
     // 6 nested: all minimal (2, 2, 2, 2, 2, 2) + list
     [StoredProcedure("SingletonTest40")]
@@ -665,7 +665,7 @@ public interface ISingletonSpExecutor
 
     // OR list
     [StoredProcedure("SingletonTest43", ConditionType = ConditionType.OR)]
-    Task<List<HeaderResult>> Test43_OR_List(string connectionString, HeaderParameters parameters);
+    Task<List<HeaderResult1>> Test43_OR_List(string connectionString, HeaderParameters parameters);
 
     // OR flat tuple
     [StoredProcedure("SingletonTest44", ConditionType = ConditionType.OR)]
@@ -688,18 +688,541 @@ public interface ISingletonSpExecutor
 #endregion
 
 #region DTOs
-public class TestClass122//: TestClass
+public class InBaseTestClass : InBaseTestClass1
 {
-    [ParamConfig(Unique =true)]
-    public  string Name { get; set; }
-    public  int Count { get; set; }
-    public  DateTime OccuredOn { get; set;}
+    public int Count { get; set; }
+    public bool IsActive { get; set; }
+    public long LargeNumber { get; set; }
+    public decimal Ratio { get; set; }
+    public short Name { get; set; }
+    public byte TinyNumber { get; set; }
+    public float LessPreciseFloat { get; set; }
+    public double DoublePrecision { get; set; }
+    public char SingleChar { get; set; }
+    public sbyte SByteValue { get; set; }
+    public ushort UShortValue { get; set; }
+    public uint UIntValue { get; set; }
+    public ulong ULongValue { get; set; }
+    public nint NIntValue { get; set; }
+    public nuint NUIntValue { get; set; }
+    public DateTime OccurredOn { get; set; }
+    public DateTimeOffset OccurredAt { get; set; }
+    public TimeSpan Duration { get; set; }
+    public Guid UniqueId { get; set; }
+    public byte[] BinaryData { get; set; }
+    public char[] CharArray { get; set; }
+    public StatusType StatusType { get; set; }
+    public List<InBaseTestClass2> NameList { get; set; }
+
+
+    [ParamConfig(DBParam = "Count1DBParam",OutParam =true)]
+    public int? Count1 { get; set; }
+    public bool? IsActive1 { get; set; }
+    public long? LargeNumber1 { get; set; }
+    public decimal? Ratio1 { get; set; }
+    public short? Name1 { get; set; }
+    public byte? TinyNumber1 { get; set; }
+    public float? LessPreciseFloat1 { get; set; }
+    public double? DoublePrecision1 { get; set; }
+    public char? SingleChar1 { get; set; }
+    public sbyte? SByteValue1 { get; set; }
+    public ushort? UShortValue1 { get; set; }
+    public uint? UIntValue1 { get; set; }
+    public ulong? ULongValue1 { get; set; }
+    public nint? NIntValue1 { get; set; }
+    public nuint? NUIntValue1 { get; set; }
+    public DateTime? OccurredOn1 { get; set; }
+    public DateTimeOffset? OccurredAt1 { get; set; }
+    public TimeSpan? Duration1 { get; set; }
+    public Guid? UniqueId1 { get; set; }
+    public byte[]? BinaryData1 { get; set; }
+    public char[]? CharArray1 { get; set; }
+    public StatusType? StatusType1 { get; set; }
+    public List<InBaseTestClass2>? NameList1 { get; set; }
+
+
+
+    [ParamConfig(DBParam = "Count2DBParam",OutParam =true)]
+    public int Count2 { get; set; }
+    [ParamConfig(DBParam = "IsActive2DBParam",OutParam =true)]
+    public bool IsActive2 { get; set; }
+    [ParamConfig(DBParam = "LargeNumber2DBParam",OutParam =true)]
+    public long LargeNumber2 { get; set; }
+    [ParamConfig(DBParam = "Ratio2DBParam",OutParam =true)]
+    public decimal Ratio2 { get; set; }
+    [ParamConfig(DBParam = "Name2DBParam",OutParam =true)]
+    public short Name2 { get; set; }
+    [ParamConfig(DBParam = "TinyNumber2DBParam",OutParam =true)]
+    public byte TinyNumber2 { get; set; }
+    [ParamConfig(DBParam = "LessPreciseFloat2DBParam",OutParam =true)]
+    public float LessPreciseFloat2 { get; set; }
+    [ParamConfig(DBParam = "DoublePrecision2DBParam",OutParam =true)]
+    public double DoublePrecision2 { get; set; }
+    [ParamConfig(DBParam = "SingleChar2DBParam",OutParam =true)]
+    public char SingleChar2 { get; set; }
+    [ParamConfig(DBParam = "SByteValue2DBParam",OutParam =true)]
+    public sbyte SByteValue2 { get; set; }
+    [ParamConfig(DBParam = "UShortValue2DBParam",OutParam =true)]
+    public ushort UShortValue2 { get; set; }
+    [ParamConfig(DBParam = "UIntValue2DBParam",OutParam =true)]
+    public uint UIntValue2 { get; set; }
+    [ParamConfig(DBParam = "ULongValue2DBParam",OutParam =true)]
+    public ulong ULongValue2 { get; set; }
+    [ParamConfig(DBParam = "NIntValue2DBParam",OutParam =true)]
+    public nint NIntValue2 { get; set; }
+    [ParamConfig(DBParam = "NUIntValue2DBParam",OutParam =true)]
+    public nuint NUIntValue2 { get; set; }
+    [ParamConfig(DBParam = "OccurredOn2DBParam",OutParam =true)]
+    public DateTime OccurredOn2 { get; set; }
+    [ParamConfig(DBParam = "OccurredAt2DBParam",OutParam =true)]
+    public DateTimeOffset OccurredAt2 { get; set; }
+    [ParamConfig(DBParam = "Duration2DBParam",OutParam =true)]
+    public TimeSpan Duration2 { get; set; }
+    [ParamConfig(DBParam = "UniqueId2DBParam",OutParam =true)]
+    public Guid UniqueId2 { get; set; }
+    [ParamConfig(DBParam = "BinaryData2DBParam",OutParam =true)]
+    public byte[] BinaryData2 { get; set; }
+    [ParamConfig(DBParam = "CharArray2DBParam",OutParam =true)]
+    public char[] CharArray2 { get; set; }
+    [ParamConfig(DBParam = "StatusType2DBParam",OutParam =true)]
+    public StatusType StatusType2 { get; set; }
+
+    [ParamConfig(ParamExclusion = true)]
+    public int Count3 { get; set; }
+    [ParamConfig(ParamExclusion = true)]
+    public bool IsActive3 { get; set; }
+    [ParamConfig(ParamExclusion = true)]
+    public long LargeNumber3 { get; set; }
+    [ParamConfig(ParamExclusion = true)]
+    public decimal Ratio3 { get; set; }
+    [ParamConfig(ParamExclusion = true)]
+    public short Name3 { get; set; }
+    [ParamConfig(ParamExclusion = true)]
+    public byte TinyNumber3 { get; set; }
+    [ParamConfig(ParamExclusion = true)]
+    public float LessPreciseFloat3 { get; set; }
+    [ParamConfig(ParamExclusion = true)]
+    public double DoublePrecision3 { get; set; }
+    [ParamConfig(ParamExclusion = true)]
+    public char SingleChar3 { get; set; }
+    [ParamConfig(ParamExclusion = true)]
+    public sbyte SByteValue3 { get; set; }
+    [ParamConfig(ParamExclusion = true)]
+    public ushort UShortValue3 { get; set; }
+    [ParamConfig(ParamExclusion = true)]
+    public uint UIntValue3 { get; set; }
+    [ParamConfig(ParamExclusion = true)]
+    public ulong ULongValue3 { get; set; }
+    [ParamConfig(ParamExclusion = true)]
+    public nint NIntValue3 { get; set; }
+    [ParamConfig(ParamExclusion = true)]
+    public nuint NUIntValue3 { get; set; }
+    [ParamConfig(ParamExclusion = true)]
+    public DateTime OccurredOn3 { get; set; }
+    [ParamConfig(ParamExclusion = true)]
+    public DateTimeOffset OccurredAt3 { get; set; }
+    [ParamConfig(ParamExclusion = true)]
+    public TimeSpan Duration3 { get; set; }
+    [ParamConfig(ParamExclusion = true)]
+    public Guid UniqueId3 { get; set; }
+    [ParamConfig(ParamExclusion = true)]
+    public byte[] BinaryData3 { get; set; }
+    [ParamConfig(ParamExclusion = true)]
+    public char[] CharArray3 { get; set; }
+    [ParamConfig(ParamExclusion = true)]
+    public StatusType StatusType3 { get; set; }
+    [ParamConfig(ParamExclusion = true)]
+    public List<InBaseTestClass2> NameList3 { get; set; }
+
+    [ParamConfig(DBParam = "OverrideCount4")]
+    public override int Count4 { get; set; }
+    [ParamConfig(DBParam = "OverrideIsActive4")]
+    public override bool IsActive4 { get; set; }
+    [ParamConfig(DBParam = "OverrideLargeNumber4")]
+    public override long LargeNumber4 { get; set; }
+    [ParamConfig(DBParam = "OverrideRatio4")]
+    public override decimal Ratio4 { get; set; }
+    [ParamConfig(DBParam = "OverrideName14")]
+    public override short Name4 { get; set; }
+    [ParamConfig(DBParam = "OverrideTinyNumber4")]
+    public override byte TinyNumber4 { get; set; }
+    [ParamConfig(DBParam = "OverrideLessPreciseFloat4")]
+    public override float LessPreciseFloat4 { get; set; }
+    [ParamConfig(DBParam = "OverrideDoublePrecision4")]
+    public override double DoublePrecision4 { get; set; }
+    [ParamConfig(DBParam = "OverrideSingleChar4")]
+    public override char SingleChar4 { get; set; }
+    [ParamConfig(DBParam = "OverrideSByteValue4")]
+    public override sbyte SByteValue4 { get; set; }
+    [ParamConfig(DBParam = "OverrideUShortValue4")]
+    public override ushort UShortValue4 { get; set; }
+    [ParamConfig(DBParam = "OverrideUIntValue4")]
+    public override uint UIntValue4 { get; set; }
+    [ParamConfig(DBParam = "OverrideULongValue4")]
+    public override ulong ULongValue4 { get; set; }
+    [ParamConfig(DBParam = "OverrideNIntValue4")]
+    public override nint NIntValue4 { get; set; }
+    [ParamConfig(DBParam = "OverrideNUIntValue4")]
+    public override nuint NUIntValue4 { get; set; }
+    [ParamConfig(DBParam = "OverrideOccurredOn4")]
+    public override DateTime OccurredOn4 { get; set; }
+    [ParamConfig(DBParam = "OverrideOccurredAt4")]
+    public override DateTimeOffset OccurredAt4 { get; set; }
+    [ParamConfig(DBParam = "OverrideDuration4")]
+    public override TimeSpan Duration4 { get; set; }
+    [ParamConfig(DBParam = "OverrideUniqueId4")]
+    public override Guid UniqueId4 { get; set; }
+
+    [ParamConfig(DBParam = "OverrideStatusType4")]
+    public override StatusType StatusType4 { get; set; }
+
 }
-public class TestClass : HeaderResult
+public class InBaseTestClass1
+{
+    public virtual int Count4 { get; set; }
+    public virtual bool IsActive4 { get; set; }
+    public virtual long LargeNumber4 { get; set; }
+    public virtual decimal Ratio4 { get; set; }
+    public virtual short Name4 { get; set; }
+    public virtual byte TinyNumber4 { get; set; }
+    public virtual float LessPreciseFloat4 { get; set; }
+    public virtual double DoublePrecision4 { get; set; }
+    public virtual char SingleChar4 { get; set; }
+    public virtual sbyte SByteValue4 { get; set; }
+    public virtual ushort UShortValue4 { get; set; }
+    public virtual uint UIntValue4 { get; set; }
+    public virtual ulong ULongValue4 { get; set; }
+    public virtual nint NIntValue4 { get; set; }
+    public virtual nuint NUIntValue4 { get; set; }
+    public virtual DateTime OccurredOn4 { get; set; }
+    public virtual DateTimeOffset OccurredAt4 { get; set; }
+    public virtual TimeSpan Duration4 { get; set; }
+    public virtual Guid UniqueId4 { get; set; }
+    public virtual StatusType StatusType4 { get; set; }
+
+    public int Count5 { get; set; }
+    public bool IsActive5 { get; set; }
+    public long LargeNumber5 { get; set; }
+    public decimal Ratio5 { get; set; }
+    public short Name5 { get; set; }
+    public byte TinyNumber5 { get; set; }
+    public float LessPreciseFloat5 { get; set; }
+    public double DoublePrecision5 { get; set; }
+    public char SingleChar5 { get; set; }
+    public sbyte SByteValue5 { get; set; }
+    public ushort UShortValue5 { get; set; }
+    public uint UIntValue5 { get; set; }
+    public ulong ULongValue5 { get; set; }
+    public nint NIntValue5 { get; set; }
+    public nuint NUIntValue5 { get; set; }
+    public DateTime OccurredOn5 { get; set; }
+    public DateTimeOffset OccurredAt5 { get; set; }
+    public TimeSpan Duration5 { get; set; }
+    public Guid UniqueId5 { get; set; }
+    public StatusType StatusType5 { get; set; }
+}
+public class InBaseTestClass2
+{
+    
+    public int Count6 { get; set; }
+    public bool IsActive6 { get; set; }
+    public long LargeNumber6 { get; set; }
+    public decimal Ratio6 { get; set; }
+    public short Name6 { get; set; }
+    public byte TinyNumber6 { get; set; }
+    public float LessPreciseFloat6 { get; set; }
+    public double DoublePrecision6 { get; set; }
+    public char SingleChar6 { get; set; }
+    public sbyte SByteValue6 { get; set; }
+    public ushort UShortValue6 { get; set; }
+    public uint UIntValue6 { get; set; }
+    public ulong ULongValue6 { get; set; }
+    public nint NIntValue6 { get; set; }
+    public nuint NUIntValue6 { get; set; }
+    public DateTime OccurredOn6 { get; set; }
+    public DateTimeOffset OccurredAt6 { get; set; }
+    public TimeSpan Duration6 { get; set; }
+    public Guid UniqueId6 { get; set; }
+    public StatusType StatusType6 { get; set; }
+}
+
+public class OutBaseTestClass : OutBaseTestClass1
+{
+    public int Count { get; set; }
+    public bool IsActive { get; set; }
+    public long LargeNumber { get; set; }
+    public decimal Ratio { get; set; }
+    public short Name { get; set; }
+    public byte TinyNumber { get; set; }
+    public float LessPreciseFloat { get; set; }
+    public double DoublePrecision { get; set; }
+    public char SingleChar { get; set; }
+    public sbyte SByteValue { get; set; }
+    public ushort UShortValue { get; set; }
+    public uint UIntValue { get; set; }
+    public ulong ULongValue { get; set; }
+    public nint NIntValue { get; set; }
+    public nuint NUIntValue { get; set; }
+    public DateTime OccurredOn { get; set; }
+    public DateTimeOffset OccurredAt { get; set; }
+    public TimeSpan Duration { get; set; }
+    public Guid UniqueId { get; set; }
+    public byte[] BinaryData { get; set; }
+    public char[] CharArray { get; set; }
+    public StatusType StatusType { get; set; }
+
+
+
+    public int? Count1 { get; set; }
+    public bool? IsActive1 { get; set; }
+    public long? LargeNumber1 { get; set; }
+    public decimal? Ratio1 { get; set; }
+    public short? Name1 { get; set; }
+    public byte? TinyNumber1 { get; set; }
+    public float? LessPreciseFloat1 { get; set; }
+    public double? DoublePrecision1 { get; set; }
+    public char? SingleChar1 { get; set; }
+    public sbyte? SByteValue1 { get; set; }
+    public ushort? UShortValue1 { get; set; }
+    public uint? UIntValue1 { get; set; }
+    public ulong? ULongValue1 { get; set; }
+    public nint? NIntValue1 { get; set; }
+    public nuint? NUIntValue1 { get; set; }
+    public DateTime? OccurredOn1 { get; set; }
+    public DateTimeOffset? OccurredAt1 { get; set; }
+    public TimeSpan? Duration1 { get; set; }
+    public Guid? UniqueId1 { get; set; }
+    public byte[]? BinaryData1 { get; set; }
+    public char[]? CharArray1 { get; set; }
+    public StatusType? StatusType1 { get; set; }
+
+
+
+    [ParamConfig(DBParam = "Count2DBParam",Unique =true)]
+    public int Count2 { get; set; }
+    [ParamConfig(DBParam = "IsActive2DBParam")]
+    public bool IsActive2 { get; set; }
+    [ParamConfig(DBParam = "LargeNumber2DBParam")]
+    public long LargeNumber2 { get; set; }
+    [ParamConfig(DBParam = "Ratio2DBParam")]
+    public decimal Ratio2 { get; set; }
+    [ParamConfig(DBParam = "Name2DBParam")]
+    public short Name2 { get; set; }
+    [ParamConfig(DBParam = "TinyNumber2DBParam")]
+    public byte TinyNumber2 { get; set; }
+    [ParamConfig(DBParam = "LessPreciseFloat2DBParam")]
+    public float LessPreciseFloat2 { get; set; }
+    [ParamConfig(DBParam = "DoublePrecision2DBParam")]
+    public double DoublePrecision2 { get; set; }
+    [ParamConfig(DBParam = "SingleChar2DBParam")]
+    public char SingleChar2 { get; set; }
+    [ParamConfig(DBParam = "SByteValue2DBParam")]
+    public sbyte SByteValue2 { get; set; }
+    [ParamConfig(DBParam = "UShortValue2DBParam")]
+    public ushort UShortValue2 { get; set; }
+    [ParamConfig(DBParam = "UIntValue2DBParam")]
+    public uint UIntValue2 { get; set; }
+    [ParamConfig(DBParam = "ULongValue2DBParam")]
+    public ulong ULongValue2 { get; set; }
+    [ParamConfig(DBParam = "NIntValue2DBParam")]
+    public nint NIntValue2 { get; set; }
+    [ParamConfig(DBParam = "NUIntValue2DBParam")]
+    public nuint NUIntValue2 { get; set; }
+    [ParamConfig(DBParam = "OccurredOn2DBParam")]
+    public DateTime OccurredOn2 { get; set; }
+    [ParamConfig(DBParam = "OccurredAt2DBParam")]
+    public DateTimeOffset OccurredAt2 { get; set; }
+    [ParamConfig(DBParam = "Duration2DBParam")]
+    public TimeSpan Duration2 { get; set; }
+    [ParamConfig(DBParam = "UniqueId2DBParam")]
+    public Guid UniqueId2 { get; set; }
+    [ParamConfig(DBParam = "BinaryData2DBParam")]
+    public byte[] BinaryData2 { get; set; }
+    [ParamConfig(DBParam = "CharArray2DBParam")]
+    public char[] CharArray2 { get; set; }
+    [ParamConfig(DBParam = "StatusType2DBParam")]
+    public StatusType StatusType2 { get; set; }
+
+
+
+    [ParamConfig(ResultExclusion = true)]
+    public int Count3 { get; set; }
+    [ParamConfig(ResultExclusion = true)]
+    public bool IsActive3 { get; set; }
+    [ParamConfig(ResultExclusion = true)]
+    public long LargeNumber3 { get; set; }
+    [ParamConfig(ResultExclusion = true)]
+    public decimal Ratio3 { get; set; }
+    [ParamConfig(ResultExclusion = true)]
+    public short Name3 { get; set; }
+    [ParamConfig(ResultExclusion = true)]
+    public byte TinyNumber3 { get; set; }
+    [ParamConfig(ResultExclusion = true)]
+    public float LessPreciseFloat3 { get; set; }
+    [ParamConfig(ResultExclusion = true)]
+    public double DoublePrecision3 { get; set; }
+    [ParamConfig(ResultExclusion = true)]
+    public char SingleChar3 { get; set; }
+    [ParamConfig(ResultExclusion = true)]
+    public sbyte SByteValue3 { get; set; }
+    [ParamConfig(ResultExclusion = true)]
+    public ushort UShortValue3 { get; set; }
+    [ParamConfig(ResultExclusion = true)]
+    public uint UIntValue3 { get; set; }
+    [ParamConfig(ResultExclusion = true)]
+    public ulong ULongValue3 { get; set; }
+    [ParamConfig(ResultExclusion = true)]
+    public nint NIntValue3 { get; set; }
+    [ParamConfig(ResultExclusion = true)]
+    public nuint NUIntValue3 { get; set; }
+    [ParamConfig(ResultExclusion = true)]
+    public DateTime OccurredOn3 { get; set; }
+    [ParamConfig(ResultExclusion = true)]
+    public DateTimeOffset OccurredAt3 { get; set; }
+    [ParamConfig(ResultExclusion = true)]
+    public TimeSpan Duration3 { get; set; }
+    [ParamConfig(ResultExclusion = true)]
+    public Guid UniqueId3 { get; set; }
+    [ParamConfig(ResultExclusion = true)]
+    public byte[] BinaryData3 { get; set; }
+    [ParamConfig(ResultExclusion = true)]
+    public char[] CharArray3 { get; set; }
+    [ParamConfig(ResultExclusion = true)]
+    public StatusType StatusType3 { get; set; }
+
+
+    [ParamConfig(DBParam = "OverrideCount4")]
+    public override int Count4 { get; set; }
+    [ParamConfig(DBParam = "OverrideIsActive4")]
+    public override bool IsActive4 { get; set; }
+    [ParamConfig(DBParam = "OverrideLargeNumber4")]
+    public override long LargeNumber4 { get; set; }
+    [ParamConfig(DBParam = "OverrideRatio4")]
+    public override decimal Ratio4 { get; set; }
+    [ParamConfig(DBParam = "OverrideName14")]
+    public override short Name4 { get; set; }
+    [ParamConfig(DBParam = "OverrideTinyNumber4")]
+    public override byte TinyNumber4 { get; set; }
+    [ParamConfig(DBParam = "OverrideLessPreciseFloat4")]
+    public override float LessPreciseFloat4 { get; set; }
+    [ParamConfig(DBParam = "OverrideDoublePrecision4")]
+    public override double DoublePrecision4 { get; set; }
+    [ParamConfig(DBParam = "OverrideSingleChar4")]
+    public override char SingleChar4 { get; set; }
+    [ParamConfig(DBParam = "OverrideSByteValue4")]
+    public override sbyte SByteValue4 { get; set; }
+    [ParamConfig(DBParam = "OverrideUShortValue4")]
+    public override ushort UShortValue4 { get; set; }
+    [ParamConfig(DBParam = "OverrideUIntValue4")]
+    public override uint UIntValue4 { get; set; }
+    [ParamConfig(DBParam = "OverrideULongValue4")]
+    public override ulong ULongValue4 { get; set; }
+    [ParamConfig(DBParam = "OverrideNIntValue4")]
+    public override nint NIntValue4 { get; set; }
+    [ParamConfig(DBParam = "OverrideNUIntValue4")]
+    public override nuint NUIntValue4 { get; set; }
+    [ParamConfig(DBParam = "OverrideOccurredOn4")]
+    public override DateTime OccurredOn4 { get; set; }
+    [ParamConfig(DBParam = "OverrideOccurredAt4")]
+    public override DateTimeOffset OccurredAt4 { get; set; }
+    [ParamConfig(DBParam = "OverrideDuration4")]
+    public override TimeSpan Duration4 { get; set; }
+    [ParamConfig(DBParam = "OverrideUniqueId4")]
+    public override Guid UniqueId4 { get; set; }
+    [ParamConfig(DBParam = "OverrideStatusType4")]
+    public override StatusType StatusType4 { get; set; }
+
+}
+public class OutBaseTestClass1 : OutBaseTestClass2
+{
+    public virtual int Count4 { get; set; }
+    public virtual bool IsActive4 { get; set; }
+    public virtual long LargeNumber4 { get; set; }
+    public virtual decimal Ratio4 { get; set; }
+    public virtual short Name4 { get; set; }
+    public virtual byte TinyNumber4 { get; set; }
+    public virtual float LessPreciseFloat4 { get; set; }
+    public virtual double DoublePrecision4 { get; set; }
+    public virtual char SingleChar4 { get; set; }
+    public virtual sbyte SByteValue4 { get; set; }
+    public virtual ushort UShortValue4 { get; set; }
+    public virtual uint UIntValue4 { get; set; }
+    public virtual ulong ULongValue4 { get; set; }
+    public virtual nint NIntValue4 { get; set; }
+    public virtual nuint NUIntValue4 { get; set; }
+    public virtual DateTime OccurredOn4 { get; set; }
+    public virtual DateTimeOffset OccurredAt4 { get; set; }
+    public virtual TimeSpan Duration4 { get; set; }
+    public virtual Guid UniqueId4 { get; set; }
+    public virtual StatusType StatusType4 { get; set; }
+
+    public int Count5 { get; set; }
+    public bool IsActive5 { get; set; }
+    public long LargeNumber5 { get; set; }
+    public decimal Ratio5 { get; set; }
+    public short Name5 { get; set; }
+    public byte TinyNumber5 { get; set; }
+    public float LessPreciseFloat5 { get; set; }
+    public double DoublePrecision5 { get; set; }
+    public char SingleChar5 { get; set; }
+    public sbyte SByteValue5 { get; set; }
+    public ushort UShortValue5 { get; set; }
+    public uint UIntValue5 { get; set; }
+    public ulong ULongValue5 { get; set; }
+    public nint NIntValue5 { get; set; }
+    public nuint NUIntValue5 { get; set; }
+    public DateTime OccurredOn5 { get; set; }
+    public DateTimeOffset OccurredAt5 { get; set; }
+    public TimeSpan Duration5 { get; set; }
+    public Guid UniqueId5 { get; set; }
+    public StatusType StatusType5 { get; set; }
+}
+public class OutBaseTestClass2
+{
+
+    public int Count6 { get; set; }
+    public bool IsActive6 { get; set; }
+    public long LargeNumber6 { get; set; }
+    public decimal Ratio6 { get; set; }
+    public short Name6 { get; set; }
+    public byte TinyNumber6 { get; set; }
+    public float LessPreciseFloat6 { get; set; }
+    public double DoublePrecision6 { get; set; }
+    public char SingleChar6 { get; set; }
+    public sbyte SByteValue6 { get; set; }
+    public ushort UShortValue6 { get; set; }
+    public uint UIntValue6 { get; set; }
+    public ulong ULongValue6 { get; set; }
+    public nint NIntValue6 { get; set; }
+    public nuint NUIntValue6 { get; set; }
+    public DateTime OccurredOn6 { get; set; }
+    public DateTimeOffset OccurredAt6 { get; set; }
+    public TimeSpan Duration6 { get; set; }
+    public Guid UniqueId6 { get; set; }
+    public StatusType StatusType6 { get; set; }
+}
+
+public class TestClass : HeaderResult1
 {
     [ParamConfig(DBParam = "CustomeName")]
-    public override string Name { get; set; }
-    public override string MyName { get; set; }
+    public  string Name { get; set; }
+
+    public  string MyName { get; set; }
+}
+public class TestClass111
+{
+    [ParamConfig(DBParam = "HeaderIdDBParam")]
+    public int HeaderId { get; set; }
+    public string Name { get; set; }
+    public string MyName { get; set; }
+    public int Count { get; set; }
+    public string IsActive { get; set; }
+    public long LargeNumber { get; set; }
+    public decimal Ratio { get; set; }
+    public byte[] BinaryData { get; set; }
+    public DateTime OccurredOn { get; set; }
+    public DateTimeOffset OccurredAt { get; set; }
+    public TimeSpan Duration { get; set; }
 }
 public class TestClass22: HeaderInfo
 {
@@ -814,7 +1337,7 @@ public class AuditInfoTableType
     public int Count { get; set; }
     public bool IsActive { get; set; }
     public long LargeNumber { get; set; }
-    public double Ratio { get; set; }
+    public decimal Ratio { get; set; }
     public byte[] BinaryData { get; set; }
     public DateTime OccurredOn { get; set; }
     public DateTimeOffset OccurredAt { get; set; }
@@ -822,7 +1345,22 @@ public class AuditInfoTableType
 }
 
 //Order of properties and datatype matter. they must match order of table coming from SP.
-public class HeaderResult
+public class HeaderResult1
+{
+    [ParamConfig(DBParam = "CustomeName",Unique =true)]
+    public int HeaderId { get; set; }
+    public string Name { get; set; }
+    public string MyName { get; set; }
+    public int Count { get; set; }
+    public string IsActive { get; set; }
+    public long LargeNumber { get; set; }
+    public decimal Ratio { get; set; }
+    public byte[] BinaryData { get; set; }
+    public DateTime OccurredOn { get; set; }
+    public DateTimeOffset OccurredAt { get; set; }
+    public TimeSpan Duration { get; set; }
+}
+public class HeaderResult11
 {
     
     public int HeaderId { get; set; }
@@ -831,7 +1369,7 @@ public class HeaderResult
     [ParamConfig(ResultExclusion =true)]
     public virtual string MyName { get; set; }
     public int Count { get; set; }
-    [ParamConfig(OutParam = true)]
+    [ParamConfig()]
     public string IsActive { get; set; }
     public long LargeNumber { get; set; }
     public decimal Ratio { get; set; }
@@ -839,23 +1377,23 @@ public class HeaderResult
     public DateTime OccurredOn { get; set; }
     public DateTimeOffset OccurredAt { get; set; }
     public TimeSpan Duration { get; set; }
-    [ParamConfig(DBParam = "HeaderId", OutParam = true)]
+    [ParamConfig(DBParam = "HeaderId")]
     public int HeaderIdOut { get; set; }
-    [ParamConfig(OutParam = true)]
+    [ParamConfig()]
     public int CountOut { get; set; }
-    [ParamConfig(OutParam = true)]
+    [ParamConfig()]
     public bool IsActiveOut { get; set; }
-    [ParamConfig(OutParam = true)]
+    [ParamConfig()]
     public long LargeNumberOut { get; set; }
-    [ParamConfig(OutParam = true)]
+    [ParamConfig()]
     public decimal RatioOut { get; set; }
-    [ParamConfig(OutParam = true)]
+    [ParamConfig(   )]
     public byte[] BinaryDataOut { get; set; }
-    [ParamConfig(OutParam = true)]
+    [ParamConfig()]
     public DateTime OccurredOnOut { get; set; }
-    [ParamConfig(OutParam = true)]
+    [ParamConfig()]
     public DateTimeOffset OccurredAtOut { get; set; }
-    [ParamConfig(OutParam = true)]
+    [ParamConfig()]
     public TimeSpan DurationOut { get; set; }
 }
 public class Record4Result 
@@ -916,7 +1454,6 @@ public class BaseClass1
 {
     
     public virtual string Name { get; set; }
-    [ParamConfig(ParamExclusion =true)]
     public virtual int Count { get; set; }
 
     public virtual DateTime OccuredOn { get; set; }

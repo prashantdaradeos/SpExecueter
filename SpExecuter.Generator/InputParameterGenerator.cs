@@ -1027,12 +1027,12 @@ namespace SpExecuter.Generator
                             {
                                 case false:
                                     {
-                                        propertySyntax.AppendLine($"param.Add(new SqlParameter(\"@{req.DBParam}\", SqlDbType.NVarChar){{Value = {info.SqlInParamName}.{req.ParameterName}.ToString()}});");
+                                        propertySyntax.AppendLine($"param.Add(new SqlParameter(\"@{req.DBParam}\", SqlDbType.NVarChar,255){{Value = {info.SqlInParamName}.{req.ParameterName}.ToString()}});");
                                         break;
                                     }
                                 case true:
                                     {
-                                        propertySyntax.AppendLine($"param.Add(new SqlParameter(\"@{req.DBParam}\", SqlDbType.NVarChar){{Value = {info.SqlInParamName}.{req.ParameterName} == null ? DBNull.Value : {info.SqlInParamName}.{req.ParameterName}.ToString()}});");
+                                        propertySyntax.AppendLine($"param.Add(new SqlParameter(\"@{req.DBParam}\", SqlDbType.NVarChar,255){{Value = {info.SqlInParamName}.{req.ParameterName} == null ? DBNull.Value : {info.SqlInParamName}.{req.ParameterName}.ToString()}});");
                                         break;
                                     }
                             }
@@ -1151,7 +1151,16 @@ namespace SpExecuter.Generator
                     string columnType =
                         prop.Type is IArrayTypeSymbol arr && arr.ElementType.SpecialType == SpecialType.System_Byte
                         ? "byte[]"
-                        : prop.Type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+                        : prop.Type.TypeKind == TypeKind.Enum?
+                        "string":
+                        prop.Type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+
+                    columnType = columnType.Equals("sbyte")?"short": columnType;
+                    columnType = columnType.Equals("ushort") ?"int": columnType;
+                    columnType = columnType.Equals("uint") ?"long": columnType; 
+                    columnType = columnType.Equals("ulong") ?"decimal": columnType;
+                    columnType = columnType.Equals("nint") ?"long": columnType;
+                    columnType = columnType.Equals("nuint") ?"decimal": columnType;
 
                     tvpFunc.AppendLine($"         {req.ParameterName}DataTable.Columns.Add(\"{prop.Name}\", typeof({columnType}));");
                 }
@@ -1161,7 +1170,18 @@ namespace SpExecuter.Generator
                 foreach (var prop in elementType.GetMembers().OfType<IPropertySymbol>())
                 {
                     if (prop.IsIndexer || prop.SetMethod is null || IsCollectionType(prop.Type)) continue;
-                    tvpFunc.AppendLine($"           row[\"{prop.Name}\"] = item.{prop.Name};");
+                    string columnType =
+                        prop.Type is IArrayTypeSymbol arr && arr.ElementType.SpecialType == SpecialType.System_Byte
+                        ? "byte[]"
+                        : prop.Type.TypeKind == TypeKind.Enum ?
+                        "string" :
+                        prop.Type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+                    columnType = columnType.Equals("nint") ? $"Convert.ToInt64(item.{prop.Name})" :
+                                 columnType.Equals("nuint") ? $"Convert.ToDecimal(item.{prop.Name})" :
+                                 "";
+                    columnType= string.IsNullOrWhiteSpace(columnType)?$"item.{prop.Name}": columnType;
+
+                    tvpFunc.AppendLine($"row[\"{prop.Name}\"] = item.{prop.Name} == null ? (object)DBNull.Value :{columnType} ;");
                 }
                 tvpFunc.AppendLine($"          {req.ParameterName}DataTable.Rows.Add(row);");
                 tvpFunc.AppendLine($"         }}");

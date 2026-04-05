@@ -12,6 +12,13 @@ using System.Text;
 using System.Threading;
 using System.Xml.Linq;
 
+/* info.Context.ReportDiagnostic(Diagnostic.Create(new DiagnosticDescriptor(
+                    "SG001",
+                     "",
+                     "---------------------" +" ",
+                    "",
+                    DiagnosticSeverity.Warning,
+                    true), info.MethodSymbol.Locations.FirstOrDefault()));*/
 namespace SpExecuter.Generator
 {
    
@@ -238,11 +245,7 @@ namespace SpExecuter.Generator
                         Validations.DuplicateTupleInNestedTupleValidation(info, returnType);
                         Validations.ValidateNestedTuple(info, returnType);
                     }
-                    Validations.ValidateInOutTypes(info, returnType);
-                    if(info.BuildFailed)
-                    {
-                        return;
-                    }
+                   
                     InputParameterGenerator.GenerateOrdinals(info, classSyntax);
                     /*if (info.ExcludeIndicesClassLevel || info.ExcludeIndicesMethodLevel)
                     {

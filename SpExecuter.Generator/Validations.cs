@@ -122,28 +122,28 @@ namespace SpExecuter.Generator
             }
             return true;
         }
-        internal static void InputPropertiesValidation(Information info,RequestProp req)
+        internal static void InputPropertiesValidation(Information info, RequestProp req)
         {
-           
-                var diagnostic = Diagnostic.Create(
-                       descriptor: new DiagnosticDescriptor(
-                           id: "SE006",
-                           title: "Property Restricted",
-                           messageFormat: "Please remove Unique or ResultExclusion property from {0} input parameter",
-                           category: "PropertyRules",
-                           DiagnosticSeverity.Error,
-                           isEnabledByDefault: true),
-                       location: req.PropertySymbol.Locations.FirstOrDefault(),
-                       messageArgs: req.PropertySymbol.Name);
+
+            var diagnostic = Diagnostic.Create(
+                   descriptor: new DiagnosticDescriptor(
+                       id: "SE006",
+                       title: "Property Restricted",
+                       messageFormat: "Please remove Unique or ResultExclusion property from {0} input parameter",
+                       category: "PropertyRules",
+                       DiagnosticSeverity.Error,
+                       isEnabledByDefault: true),
+                   location: req.PropertySymbol.Locations.FirstOrDefault(),
+                   messageArgs: req.PropertySymbol.Name);
             info.BuildFailed = true;
 
             info.Context.ReportDiagnostic(diagnostic);
-             
+
         }
 
         internal static void ValidateUniqueConstraint(Information info, INamedTypeSymbol mainReturnType)
         {
-            
+
             foreach (var eachReturnType in mainReturnType.TupleElements)
             {
                 var returnType = eachReturnType.Type as INamedTypeSymbol;
@@ -164,24 +164,24 @@ namespace SpExecuter.Generator
                 else if (returnType.IsGenericType &&
                     returnType.OriginalDefinition.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat).StartsWith("global::System.Collections.Generic.List"))
                 {
-                    
-                        var listTypeArg = returnType.TypeArguments[0] as INamedTypeSymbol;
-                       var (hasUniqueProp, uniqueAttributeName) = CheckClassHasUniqueAttribute(info, listTypeArg);
-                        if (!hasUniqueProp)
-                        {
-                            UniqueValidationForORCondition(info, listTypeArg);
 
-                        }
-                   
+                    var listTypeArg = returnType.TypeArguments[0] as INamedTypeSymbol;
+                    var (hasUniqueProp, uniqueAttributeName) = CheckClassHasUniqueAttribute(info, listTypeArg);
+                    if (!hasUniqueProp)
+                    {
+                        UniqueValidationForORCondition(info, listTypeArg);
+
+                    }
+
                 }
             }
 
         }
-        internal static (bool,string) CheckClassHasUniqueAttribute(Information info, INamedTypeSymbol returnType)
+        internal static (bool, string) CheckClassHasUniqueAttribute(Information info, INamedTypeSymbol returnType)
         {
             string uniqueAttributeName1 = "";
             Dictionary<int, INamedTypeSymbol> inheritanceInfo = new Dictionary<int, INamedTypeSymbol>();
-            Common.GetInheritanceInfo(returnType,0, inheritanceInfo);
+            Common.GetInheritanceInfo(returnType, 0, inheritanceInfo);
             for (int i = inheritanceInfo.Count - 1; i >= 0; i--)
             {
                 var parameterType = inheritanceInfo[i];
@@ -218,7 +218,7 @@ namespace SpExecuter.Generator
             }
             return (false, string.Empty);
         }
-        internal static void UniqueValidationForORCondition(Information info,INamedTypeSymbol returnType)
+        internal static void UniqueValidationForORCondition(Information info, INamedTypeSymbol returnType)
         {
 
             var diagnostic = Diagnostic.Create(
@@ -238,33 +238,33 @@ namespace SpExecuter.Generator
 
         internal static void ValidateNestedTuple(Information info, INamedTypeSymbol mainReturnType)
         {
-            Dictionary<int,INamedTypeSymbol> nestedTupleElements = new Dictionary<int,INamedTypeSymbol>();
+            Dictionary<int, INamedTypeSymbol> nestedTupleElements = new Dictionary<int, INamedTypeSymbol>();
             List<int> returnCounts = new List<int>();
             int position = 0;
-           
+
             foreach (var eachReturnType in mainReturnType.TupleElements)
             {
                 var returnType = eachReturnType.Type as INamedTypeSymbol;
-               
-                if (returnType.IsTupleType && 
+
+                if (returnType.IsTupleType &&
                     returnType.NullableAnnotation != NullableAnnotation.Annotated)
                 {
                     NullValidationForNestedTuple(info, returnType);
                 }
-                returnType= returnType.NullableAnnotation == NullableAnnotation.Annotated ?
+                returnType = returnType.NullableAnnotation == NullableAnnotation.Annotated ?
                     returnType.TypeArguments[0] as INamedTypeSymbol : returnType;
-                
-                
+
+
                 nestedTupleElements.Add(position, returnType);
                 returnCounts.Add(Common.GetReturnCountFromTuple(info, returnType));
-                
+
                 position++;
 
             }
-           
-           int sameElements= FindSameElements(info, returnCounts, nestedTupleElements);
+
+            int sameElements = FindSameElements(info, returnCounts, nestedTupleElements);
             info.SameElementsInNestedTuple = sameElements;
-            ValidateUniqueConstraintInNestedTuple( info, mainReturnType, sameElements);
+            ValidateUniqueConstraintInNestedTuple(info, mainReturnType, sameElements);
         }
         internal static void DifferentTypesValidation(Information info, INamedTypeSymbol returnType, int position)
         {
@@ -300,29 +300,30 @@ namespace SpExecuter.Generator
 
             info.Context.ReportDiagnostic(diagnostic);
         }
-        private static void ValidateUniqueConstraintInNestedTuple(Information info, 
+        private static void ValidateUniqueConstraintInNestedTuple(Information info,
             INamedTypeSymbol mainReturnType, int sameElements)
         {
             Dictionary<int, List<INamedTypeSymbol>> flattenedTypes = new Dictionary<int, List<INamedTypeSymbol>>();
-            
+
             mainReturnType.TupleElements.Select((returnType, index) =>
             {
                 var flattened = new List<INamedTypeSymbol>();
                 var type = returnType.Type as INamedTypeSymbol;
-                type=Common.GetNonNullableType(type);
+                type = Common.GetNonNullableType(type);
                 Common.Flatten(type, flattened);
                 flattenedTypes.Add(index, flattened);
                 return "";
             }).ToList();
             string[] uniqueProperties = flattenedTypes.
-                                Select(kvp => {
-                                    if(kvp.Value.Count <= sameElements)
+                                Select(kvp =>
+                                {
+                                    if (kvp.Value.Count <= sameElements)
                                     {
                                         return "";
                                     }
                                     return Common.GetUniqueProperty(info, kvp.Value[sameElements]);
                                 }).ToArray();
-            ValidateRecurrsively(info,flattenedTypes.Values.ToList(),uniqueProperties,sameElements);
+            ValidateRecurrsively(info, flattenedTypes.Values.ToList(), uniqueProperties, sameElements);
 
         }
         private static bool ValidateRecurrsively(Information info,
@@ -470,15 +471,15 @@ namespace SpExecuter.Generator
             return allGroupsValid;
         }
         internal static int FindSameElements(Information info,
-           List<int> returnCounts, 
+           List<int> returnCounts,
            Dictionary<int, INamedTypeSymbol> nestedTupleElements)
         {
-            
-            int sameElements = 0,i=0;
+
+            int sameElements = 0, i = 0;
             foreach (var returnType in nestedTupleElements)
             {
                 i++;
-                
+
                 if (!returnCounts.All(k => i <= k))
                 {
                     break;
@@ -490,8 +491,8 @@ namespace SpExecuter.Generator
                 }
                 sameElements++;
             }
-            
-            
+
+
             return sameElements;
 
         }
@@ -524,7 +525,7 @@ namespace SpExecuter.Generator
 
             return true;
         }
-       
+
         private static INamedTypeSymbol? GetNthElement(Information info,
         INamedTypeSymbol symbol,
         int position)
@@ -535,14 +536,14 @@ namespace SpExecuter.Generator
             }
             var flattened = new List<INamedTypeSymbol>();
             Common.Flatten(symbol, flattened);
-           
+
             if (position > flattened.Count)
                 return null;
 
             return flattened[position - 1].NullableAnnotation == NullableAnnotation.Annotated ?
                     flattened[position - 1].TypeArguments[0] as INamedTypeSymbol : flattened[position - 1];
         }
-        
+
         private static void NullValidationForNestedTuple(Information info, INamedTypeSymbol returnType)
         {
 
@@ -576,11 +577,11 @@ namespace SpExecuter.Generator
                 var element = tupleType.TupleElements[i];
                 var elementType = element.Type as INamedTypeSymbol;
                 elementType = Common.GetNonNullableType(elementType);
-                elementType= elementType.IsGenericType &&
+                elementType = elementType.IsGenericType &&
                     elementType.OriginalDefinition.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat).StartsWith("global::System.Collections.Generic.List") ?
                     elementType.TypeArguments[0] as INamedTypeSymbol : elementType;
 
-                for(int j=i+1; j < flattenedTypes.Count; j++)
+                for (int j = i + 1; j < flattenedTypes.Count; j++)
                 {
                     var compareType = flattenedTypes[j];
                     compareType = Common.GetNonNullableType(compareType);
@@ -611,10 +612,10 @@ namespace SpExecuter.Generator
                 List<INamedTypeSymbol> flattenedTypes = new List<INamedTypeSymbol>();
                 Common.Flatten(tupleType, flattenedTypes);
                 list.Add(flattenedTypes);
-            }               
-            for(int i=0; i < list.Count; i++)
+            }
+            for (int i = 0; i < list.Count; i++)
             {
-                for(int j=i+1; j < list.Count; j++)
+                for (int j = i + 1; j < list.Count; j++)
                 {
                     if (list[i].SequenceEqual(list[j], SymbolEqualityComparer.Default))
                     {
@@ -682,7 +683,7 @@ namespace SpExecuter.Generator
             type1 = Common.GetNonNullableType(type1);
             type2 = Common.GetNonNullableType(type2);
 
-            if(!type1.IsTupleType || !type2.IsTupleType)
+            if (!type1.IsTupleType || !type2.IsTupleType)
             {
                 return false;
             }
@@ -690,7 +691,7 @@ namespace SpExecuter.Generator
             {
                 return false;
             }
-            for (int i=0;i< type1.TupleElements.Length; i++)
+            for (int i = 0; i < type1.TupleElements.Length; i++)
             {
                 var element1 = type1.TupleElements[i];
                 var elementType1 = element1.Type as INamedTypeSymbol;
@@ -738,9 +739,125 @@ namespace SpExecuter.Generator
             info.Context.ReportDiagnostic(diagnostic);
         }
 
-        internal static void ValidateInOutTypes(Information info, INamedTypeSymbol returnType)
+        internal static void ValidateOutTypes(Information info,StringBuilder result)
         {
-           
+            Dictionary<int, List<INamedTypeSymbol>> allFlattenedTypes = new Dictionary<int, List<INamedTypeSymbol>>();
+
+            if (info.ReturnType.IsTupleType)
+            {
+                if (info.ConditionType == ConditionType.OR)
+                {
+                    int nestedTupleSequence = 0;
+                    foreach (var nestedTuple in info.ReturnType.TupleElements)
+                    {
+                        var tupleType = nestedTuple.Type as INamedTypeSymbol;
+                        tupleType = Common.GetNonNullableType(tupleType);
+                        List<INamedTypeSymbol> flattenedType = new List<INamedTypeSymbol>();
+                        flattenedType.Add(tupleType);
+                        allFlattenedTypes[nestedTupleSequence++] = flattenedType;
+                    }
+                }
+                else
+                {
+                    int nestedTupleSequence = 0;
+                    foreach (var nestedTuple in info.ReturnType.TupleElements)
+                    {
+                        var tupleType = nestedTuple.Type as INamedTypeSymbol;
+                        tupleType = Common.GetNonNullableType(tupleType);
+                        List<INamedTypeSymbol> flattenedTypes = new List<INamedTypeSymbol>();
+                        Common.Flatten(tupleType, flattenedTypes);
+                        allFlattenedTypes[nestedTupleSequence++] = flattenedTypes;
+                    }
+                }
+                foreach (var kvp in allFlattenedTypes)
+                {
+                    foreach (var type in kvp.Value)
+                    {
+                        var nonNullableType = Common.GetNonNullableType(type);
+                        var innerType = Common.GetInnerType(nonNullableType);
+                        innerType = Common.GetNonNullableType(innerType);
+                        ValidateOutType(info, innerType);
+
+                    }
+                }
+            }
+            else {
+                var nonNullableType = Common.GetNonNullableType(info.ReturnType);
+                var innerType = Common.GetInnerType(nonNullableType);
+                innerType = Common.GetNonNullableType(innerType);
+                ValidateOutType(info, innerType);
+            }
+
+
+          
         }
+
+        private static void ValidateOutType(Information info,INamedTypeSymbol classSymbol )
+        {
+            Dictionary<int, INamedTypeSymbol> inheritanceInfo = new Dictionary<int, INamedTypeSymbol>();
+            Common.GetInheritanceInfo(classSymbol, 0, inheritanceInfo);
+ 
+            var parameterType = inheritanceInfo[0];
+
+
+            for (int i = inheritanceInfo.Count - 1; i >= 0; i--)
+            {
+                parameterType = inheritanceInfo[i];
+                foreach (var propertySymbol in parameterType.GetMembers().OfType<IPropertySymbol>())
+                {
+
+                    if (Common.NeedToSkipProperty(info.Context, inheritanceInfo, propertySymbol, i))
+                    {
+                        continue;
+                    }
+                    var paramConfigAttr = propertySymbol
+                        .GetAttributes()
+                        .FirstOrDefault(attr => attr.AttributeClass.Name.Contains("ParamConfig") ||
+                            attr.AttributeClass.ToDisplayString().Contains("SpExecuter.Utility.ParamConfig"));
+                    bool exclude = false;
+                    if (paramConfigAttr != null)
+                    {
+
+                        var paramExclusionArg = paramConfigAttr.NamedArguments
+                                .FirstOrDefault(kv => kv.Key == nameof(ParamConfig.ParamExclusion));
+                        bool paramExclusionArgValue = Convert.ToBoolean(paramExclusionArg.Value.Value);
+                        if (paramExclusionArg.Key !=null || paramExclusionArgValue)
+                        {
+                            OutPropertiesValidation(info, propertySymbol, "ParamExclusion");
+                        }
+
+                        var outParamArg = paramConfigAttr.NamedArguments
+                                .FirstOrDefault(kv => kv.Key == nameof(ParamConfig.OutParam));
+                        bool outParamArgValue = Convert.ToBoolean(outParamArg.Value.Value);
+                        if (outParamArgValue)
+                        {
+                            OutPropertiesValidation(info, propertySymbol, "OutParam");
+                        }
+                    }
+
+                  
+                }
+
+            }
+        }
+        private static void OutPropertiesValidation(Information info, IPropertySymbol req,string attributeName)
+        {
+
+            var diagnostic = Diagnostic.Create(
+                   descriptor: new DiagnosticDescriptor(
+                       id: "SE006",
+                       title: "Property Restricted",
+                       messageFormat: "Please remove {1} property from {0} output parameter",
+                       category: "PropertyRules",
+                       DiagnosticSeverity.Error,
+                       isEnabledByDefault: true),
+                   location: req.Locations.FirstOrDefault(),
+                   messageArgs: new object[] { req.Name, attributeName });
+            info.BuildFailed = true;
+
+            info.Context.ReportDiagnostic(diagnostic);
+
+        }
+
     }
-}
+    }
