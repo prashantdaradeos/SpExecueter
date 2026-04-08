@@ -1,5 +1,7 @@
-﻿using Example.DataAccess;
+﻿ using Example;
+using Example.DataAccess;
 using Microsoft.Extensions.DependencyInjection;
+using Newtonsoft.Json;
 using SpExecuter.Utility;
 using System.Text;
 
@@ -7,112 +9,69 @@ var services = new ServiceCollection();
 services.ConfigureSpExecuter();             // Mandatory Call this method from Your APP
 
 var provider = services.BuildServiceProvider();
-var scopedExecutor = provider.GetRequiredService<IScopedSpExecutor>();
-var singletonExecutor = provider.GetRequiredService<ISingletonSpExecutor>();
+var transientExecutor = provider.GetRequiredService<ITransientSpExecutor>();
 
 
 string connectionString = "Server=localhost\\SQLEXPRESS;Database=Test;Trusted_Connection=True; TrustServerCertificate=True; Integrated Security=True;";
-var headerOnly = new HeaderInfo
-{
-    MyName = "OnlyHeader",
-    Count = 1,
-    IsActive = false,
-    LargeNumber = 98765,
-    Ratio = 99.99,
-    BinaryData = Encoding.UTF8.GetBytes("one-header"),
-    OccurredOn = DateTime.UtcNow,
-    OccurredAt = DateTimeOffset.UtcNow,
-    Duration = TimeSpan.FromMinutes(10)
-};
-var header = new HeaderParameters
-{
-    MyName = "Sample Header",
-    Count = 10,
-    IsActive = true,
-    LargeNumber = 1234567890,
-    Ratio = 45.67,
-    BinaryData = Encoding.UTF8.GetBytes("HelloWorld"),
-    OccurredOn = new DateTime(2025, 7, 12, 10, 30, 0),
-    OccurredAt = new DateTimeOffset(2025, 7, 12, 10, 30, 0, TimeSpan.FromHours(5.5)),
-    Duration = new TimeSpan(2, 15, 30), // 2h 15m 30s
-
-    Record4Items = new List<Record4TableType>
-    {
-        new Record4TableType
-        {
-            Name = "Record A",
-            Count = 1,
-            IsActive = true,
-            LargeNumber = 1000
-        },
-        new Record4TableType
-        {
-            Name = "Record B",
-            Count = 2,
-            IsActive = false,
-            LargeNumber = 2000
-        }
-    },
-
-    AuditItems = new List<AuditInfoTableType>
-    {
-        new AuditInfoTableType
-        {
-            Description = "Audit Entry 1",
-            Count = 5,
-            IsActive = true,
-            LargeNumber = 5000,
-            Ratio = 99.99,
-            BinaryData = new byte[] { 0x01, 0x02 },
-            OccurredOn = DateTime.Now.Date,
-            OccurredAt = DateTimeOffset.Now,
-            Duration = TimeSpan.FromMinutes(90)
-        },
-        new AuditInfoTableType
-        {
-            Description = "Audit Entry 2",
-            Count = 8,
-            IsActive = false,
-            LargeNumber = 8888,
-            Ratio = 75.25,
-            BinaryData = new byte[] { 0x03, 0x04 },
-            OccurredOn = DateTime.Today.AddDays(-1),
-            OccurredAt = DateTimeOffset.Now.AddDays(-1),
-            Duration = TimeSpan.FromHours(1)
-        }
-    }
-};
 
 
 
 
 try
 {
-    //Call the stored procedure with parameters
-    HeaderResult single = await scopedExecutor.GetSingleRecordAsync(connectionString, header);
+    // 1. Test1_With_Single
+    var res1 = await transientExecutor.Test1_With_Single(connectionString, AllObjects.CreateInBaseTestClass());
+    Console.WriteLine("Test1_With_Single: " + JsonConvert.SerializeObject(res1));
 
-    (HeaderResult h, Record4Result r4, AuditInfoResult a) =
-        await scopedExecutor.GetTupleOfRecordsAsync(connectionString, header);
+    // 2. Test2_With_List
+    var res2 = await transientExecutor.Test2_With_List(connectionString, AllObjects.CreateTestClass111());
+    Console.WriteLine("Test2_With_List: " + JsonConvert.SerializeObject(res2));
 
-    (List<HeaderResult> headers, Record4Result singleRecord4) =
-        await scopedExecutor.GetListAndObjectAsync(connectionString, header);
+    // 3. Test3_With_TupleContainingSingle
+    var res3 = await transientExecutor.Test3_With_TupleContainingSingle(connectionString);
+    Console.WriteLine("Test3_With_TupleContainingSingle: " + JsonConvert.SerializeObject(res3));
 
-    List<HeaderResult> headerList = await singletonExecutor.GetListAsync(connectionString, header);
+    // 4. Test4_With_TupleContaing2List
+    var res4 = await transientExecutor.Test4_With_TupleContaing2List(connectionString, AllObjects.CreateTestClass111ForTest4());
+    Console.WriteLine("Test4_With_TupleContaing2List: " + JsonConvert.SerializeObject(res4));
 
-    (List<HeaderResult> headers2, List<Record4Result> record4s2) =
-        await singletonExecutor.GetTwoListsAsync(connectionString, header);
+    // 5. Test5_With_TupleContaingSingleNList
+    var res5 = await transientExecutor.Test5_With_TupleContaingSingleNList(connectionString, AllObjects.CreateTestClass111ForTest4());
+    Console.WriteLine("Test5_With_TupleContaingSingleNList: " + JsonConvert.SerializeObject(res5));
 
-    GenericSpResponse staticInsertResult = await singletonExecutor.GetGenericResponseAsync(connectionString);
+    // 6. Test6_With_Tuple_N_Single (HeaderId=1: tuple, HeaderId=2: single)
+    var res6_1 = await transientExecutor.Test6_With_Tuple_N_Single(connectionString, AllObjects.CreateTestClass111ForTest6(1));
+    Console.WriteLine("Test6_With_Tuple_N_Single (HeaderId=1): " + JsonConvert.SerializeObject(res6_1));
+    var res6_2 = await transientExecutor.Test6_With_Tuple_N_Single(connectionString, AllObjects.CreateTestClass111ForTest6(2));
+    Console.WriteLine("Test6_With_Tuple_N_Single (HeaderId=2): " + JsonConvert.SerializeObject(res6_2));
 
+    // 7. Test7_With_Tuple_N_List (HeaderId=1: tuple, HeaderId=2: list)
+    var res7_1 = await transientExecutor.Test7_With_Tuple_N_List(connectionString, AllObjects.CreateTestClass111ForTest6(1));
+    Console.WriteLine("Test7_With_Tuple_N_List (HeaderId=1): " + JsonConvert.SerializeObject(res7_1));
+    var res7_2 = await transientExecutor.Test7_With_Tuple_N_List(connectionString, AllObjects.CreateTestClass111ForTest6(2));
+    Console.WriteLine("Test7_With_Tuple_N_List (HeaderId=2): " + JsonConvert.SerializeObject(res7_2));
 
-    GenericSpResponse insertHeaderResult =
-        await singletonExecutor.GetGenericResponseAsync(connectionString, headerOnly);
+    // 8. Test8_With_Tuple_Single_List (HeaderId=1: tuple1, 2: tuple2, 3: tuple3)
+    var res8_1 = await transientExecutor.Test8_With_Tuple_Single_List(connectionString, AllObjects.CreateTestClass111ForTest6(1));
+    Console.WriteLine("Test8_With_Tuple_Single_List (HeaderId=1): " + JsonConvert.SerializeObject(res8_1));
+    var res8_2 = await transientExecutor.Test8_With_Tuple_Single_List(connectionString, AllObjects.CreateTestClass111ForTest6(2));
+    Console.WriteLine("Test8_With_Tuple_Single_List (HeaderId=2): " + JsonConvert.SerializeObject(res8_2));
+    var res8_3 = await transientExecutor.Test8_With_Tuple_Single_List(connectionString, AllObjects.CreateTestClass111ForTest6(3));
+    Console.WriteLine("Test8_With_Tuple_Single_List (HeaderId=3): " + JsonConvert.SerializeObject(res8_3));
 
-    (List<HeaderResult> hList, _, List<AuditInfoResult> aList) =
-        await singletonExecutor.GetThreeListsAsync(connectionString, header);
+    // 9. Test9_With_2Tuple_Single (HeaderId=1: tuple1, 2: tuple2, 3: list)
+    var res9_1 = await transientExecutor.Test9_With_2Tuple_Single(connectionString, AllObjects.CreateTestClass111ForTest6(1));
+    Console.WriteLine("Test9_With_2Tuple_Single (HeaderId=1): " + JsonConvert.SerializeObject(res9_1));
+    var res9_2 = await transientExecutor.Test9_With_2Tuple_Single(connectionString, AllObjects.CreateTestClass111ForTest6(2));
+    Console.WriteLine("Test9_With_2Tuple_Single (HeaderId=2): " + JsonConvert.SerializeObject(res9_2));
+    var res9_3 = await transientExecutor.Test9_With_2Tuple_Single(connectionString, AllObjects.CreateTestClass111ForTest6(3));
+    Console.WriteLine("Test9_With_2Tuple_Single (HeaderId=3): " + JsonConvert.SerializeObject(res9_3));
 
-    //Before calling this method build at least Once to get IntelliSense for request object number
-    var resultInStringArray = await SpExecutor.ExecuteSpToStringArray("SaveFullHeaderDetails", connectionString, SpRequest.HeaderParameters, header);
+    // 10. Test10_With_OR (HeaderId=1: List<HeaderResult11>, HeaderId=2: TestClass1)
+    var res10_1 = await transientExecutor.Test10_With_OR(connectionString, AllObjects.CreateTestClass111ForTest6(1));
+    Console.WriteLine("Test10_With_OR (HeaderId=1): " + JsonConvert.SerializeObject(res10_1));
+    var res10_2 = await transientExecutor.Test10_With_OR(connectionString, AllObjects.CreateTestClass111ForTest6(2));
+    Console.WriteLine("Test10_With_OR (HeaderId=2): " + JsonConvert.SerializeObject(res10_2));
 }
 catch (SpExecuterException ex)
 {

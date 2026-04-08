@@ -8,4 +8,9 @@ namespace SpExecuter.Utility
     {
         Scoped, Singleton, Transient
     }
+    public enum ConditionType
+    {
+        AND,
+        OR
+    }
 }
