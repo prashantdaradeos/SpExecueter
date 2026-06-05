@@ -5,7 +5,7 @@
     <LangVersion>9.0</LangVersion>
     <Nullable>enable</Nullable>
     <PackageId>CodePiece.SpExecuter.Generator</PackageId>
-    <Version>2.0.0</Version>
+    <Version>2.0.1</Version>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <IsRoslynComponent>true</IsRoslynComponent>
     <OutputItemType>Analyzer</OutputItemType>
@@ -15,7 +15,7 @@
     <RunAnalyzers>false</RunAnalyzers>
     <IncludeBuildOutput>false</IncludeBuildOutput> <!--If required Make it true to run locally -->
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <PackageTags>codepiece spexecuter sql sp storedprocedure onepiece</PackageTags>
+    <PackageTags>codepiece spexecuter spexecutor sql sp storedprocedure onepiece</PackageTags>
     <PackageProjectUrl>https://www.nuget.org/packages/SpExecuter.Generator/</PackageProjectUrl>
     <RepositoryUrl>https://github.com/prashantdaradeos/SpExecueter</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
