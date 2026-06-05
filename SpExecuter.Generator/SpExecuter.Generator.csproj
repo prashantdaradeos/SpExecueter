@@ -15,7 +15,7 @@
     <RunAnalyzers>false</RunAnalyzers>
     <IncludeBuildOutput>false</IncludeBuildOutput> <!--If required Make it true to run locally -->
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <PackageTags>codepiece spexecuter sql sp storedprocedure onepiece</PackageTags>
+    <PackageTags>codepiece spexecuter spexecutor sql sp storedprocedure onepiece</PackageTags>
     <PackageProjectUrl>https://www.nuget.org/packages/SpExecuter.Generator/</PackageProjectUrl>
     <RepositoryUrl>https://github.com/prashantdaradeos/SpExecueter</RepositoryUrl>
     <RepositoryType>git</RepositoryType>

@@ -14,7 +14,7 @@
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
-    <PackageTags>codepiece spexecuter sql sp storedprocedure onepiece</PackageTags>
+    <PackageTags>codepiece spexecuter spexecutor sql sp storedprocedure onepiece</PackageTags>
     <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup> 
 
