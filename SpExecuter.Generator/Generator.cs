@@ -168,7 +168,22 @@ namespace SpExecuter.Generator
             {
                 //Add classname and method name for background service flag change
                 AtomicFlags.Add(info.ClassName, new List<string>());
-                //Get class declaration syntax
+                info.RequiredNamespaces = new HashSet<string>();
+
+                // First pass: Collect namespaces from all methods (parameters and return types)
+                foreach (IMethodSymbol member in info.InterfaceSymbol.GetMembers().OfType<IMethodSymbol>())
+                {
+                    // Collect namespaces from method parameters
+                    foreach (var param in member.Parameters)
+                    {
+                        Common.CollectNamespacesFromType(param.Type, info.RequiredNamespaces);
+                    }
+
+                    // Collect namespaces from return type
+                    Common.CollectNamespacesFromType(member.ReturnType, info.RequiredNamespaces);
+                }
+
+                //Get class declaration syntax with collected namespaces
                 StringBuilder classSyntax = new StringBuilder();
                 GetInitialSyntax(classSyntax, info);
                 info.MethodSequenceNo = 1;
@@ -295,6 +310,21 @@ namespace SpExecuter.Generator
             builder.AppendLine("using System.Data;");
             builder.AppendLine("using SpExecuter.Utility;");
             builder.AppendLine("using Microsoft.Data.SqlClient;");
+
+            // Add collected namespaces from input parameters and return types
+            foreach (var ns in info.RequiredNamespaces)
+            {
+                // Skip namespaces that are already added or same as the class namespace
+                if (ns != "System.Text" && 
+                    ns != "System.Data" && 
+                    ns != "SpExecuter.Utility" && 
+                    ns != "Microsoft.Data.SqlClient" &&
+                    ns != info.NamespaceName)
+                {
+                    builder.AppendLine($"using {ns};");
+                }
+            }
+
             builder.AppendLine($"namespace {info.NamespaceName}{{");
             builder.AppendLine($"public class {info.ClassName} : {info.InterfaceSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)}");
             builder.AppendLine("{");

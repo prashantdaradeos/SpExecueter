@@ -18,14 +18,17 @@ namespace SpExecuter.Utility
        {
             IEnumerable<Type> registrations = AppDomain.CurrentDomain.GetAssemblies()
                  .SelectMany(a => a.GetTypes())
-                 .Where(types => typeof(ISpExecuterRegistration).IsAssignableFrom(types) && !types.IsInterface);
-            if (registrations.Any())
+                 .Where(types => typeof(ISpExecuterRegistration).IsAssignableFrom(types) && 
+                 !types.IsInterface);
+
+            // Register services from ALL projects that have SpExecuterRegistration
+            foreach (Type registrationType in registrations)
             {
-                ISpExecuterRegistration instance = (ISpExecuterRegistration)Activator.CreateInstance(registrations.First())!;
+                ISpExecuterRegistration instance = 
+                    (ISpExecuterRegistration)Activator.CreateInstance(registrationType)!;
                 instance.RegisterForDependencyInjection(services);
             }
-            
-            
+
             return services;
         }
     }

@@ -79,6 +79,7 @@ namespace SpExecuter.Generator
             this.ExcludeIndices = baseModel.ExcludeIndices;
         }
 
+        internal HashSet<string> RequiredNamespaces { get; set; } 
         internal string ClassName { get; set; }
         internal string NamespaceName { get; set; }
         internal int MethodSequenceNo { get; set; }

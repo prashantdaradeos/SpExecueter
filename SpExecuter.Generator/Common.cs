@@ -637,5 +637,66 @@ namespace SpExecuter.Generator
                 }
             }
         }
+        internal static void CollectNamespacesFromType(ITypeSymbol typeSymbol, HashSet<string> namespaces)
+        {
+            if (typeSymbol == null)
+                return;
+
+            // Handle arrays
+            if (typeSymbol is IArrayTypeSymbol arrayType)
+            {
+                CollectNamespacesFromType(arrayType.ElementType, namespaces);
+                return;
+            }
+
+            if (typeSymbol is INamedTypeSymbol namedType)
+            {
+                // Handle nullable types
+                if (namedType.NullableAnnotation == NullableAnnotation.Annotated ||
+                    (namedType.ConstructedFrom?.OriginalDefinition?.SpecialType == SpecialType.System_Nullable_T))
+                {
+                    if (namedType.TypeArguments.Length > 0)
+                    {
+                        CollectNamespacesFromType(namedType.TypeArguments[0], namespaces);
+                    }
+                }
+
+                // Handle tuple types
+                if (namedType.IsTupleType)
+                {
+                    foreach (var element in namedType.TupleElements)
+                    {
+                        CollectNamespacesFromType(element.Type, namespaces);
+                    }
+                    return;
+                }
+
+                // Handle generic types (e.g., List<T>, Task<T>)
+                if (namedType.IsGenericType)
+                {
+                    foreach (var typeArg in namedType.TypeArguments)
+                    {
+                        CollectNamespacesFromType(typeArg, namespaces);
+                    }
+                }
+
+                // Add namespace for user-defined types (classes with source references)
+                if (namedType.TypeKind == TypeKind.Class &&
+                    namedType.DeclaringSyntaxReferences.Length > 0 &&
+                    namedType.ContainingNamespace != null &&
+                    !namedType.ContainingNamespace.IsGlobalNamespace)
+                {
+                    namespaces.Add(namedType.ContainingNamespace.ToDisplayString());
+                }
+
+                // Add namespace for enums
+                if (namedType.TypeKind == TypeKind.Enum &&
+                    namedType.ContainingNamespace != null &&
+                    !namedType.ContainingNamespace.IsGlobalNamespace)
+                {
+                    namespaces.Add(namedType.ContainingNamespace.ToDisplayString());
+                }
+            }
+        }
     } 
 }
